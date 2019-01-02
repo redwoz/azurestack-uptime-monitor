@@ -1,5 +1,2 @@
-# Email Address for notifications
 MAILTO=""
-
-# Interval (5 entries), job dispatcher, job name, job script
 */5 * * * * /azmon/azurecli/common/cron_job.sh pnu /azmon/azurecli/jobs/pnu.sh
