@@ -109,4 +109,4 @@ sudo docker service create \
      grafana/grafana
 
 echo "=========== Configure cron"
-sudo crontab -u $(whoami) /azmon/azurecli/common/cron_tab.txt
+# sudo crontab -u $(whoami) /azmon/azurecli/common/cron_tab.txt
