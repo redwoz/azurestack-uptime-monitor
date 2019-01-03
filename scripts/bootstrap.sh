@@ -8,10 +8,10 @@ ARGUMENTS_JSON=$1
 echo "============== Installing Prerequisistes ..."
 
 #update your existing list of packages
-sudo apt update
+sudo apt-get update
 
 # prerequisite packages which let apt use packages over HTTPS
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common jq
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq
 
 # add the GPG key for the official Docker repository
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -23,7 +23,7 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update
 
 # Install Docker
-sudo apt install -y docker-ce
+sudo apt-get install -y docker-ce
 	
 echo "=========== Donwload docker images ..."
 
