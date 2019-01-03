@@ -49,7 +49,6 @@ LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername")
 
 # Create a directory structure for the project
 sudo mkdir /azmon
-sudo mkdir /azmon/log
 sudo mkdir /azmon/azurecli
 sudo mkdir /azmon/azurecli/jobs
 sudo mkdir /azmon/azurecli/common
@@ -71,7 +70,6 @@ sudo cp /var/lib/waagent/Certificates.pem /azmon/azurecli/common/Certificates.pe
 
 # change the permissions for all files in /azmon/azurecli 
 sudo chmod -R 755 /azmon/azurecli
-sudo chmod 777 /azmon/log
 
 echo "=========== Initialize Docker Swarm ..."
 

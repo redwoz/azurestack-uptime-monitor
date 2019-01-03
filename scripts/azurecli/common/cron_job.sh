@@ -24,7 +24,7 @@ function azmon_existing_service_remove
 
     # If existing service task is still running, update record in DB (based on existing TIMESTAMP)
     [[ $TASK_STATUS == Running* ]] \
-      && curl -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "$JOB_NAME job=0,job_status=exceeded_max_runtime,job_runtime=$(( ($JOB_TIMESTAMP-$EXISTING_SERVICE_TIMESTAMP)/60000000000 )) $EXISTING_SERVICE_TIMESTAMP" \
+      && curl -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "$JOB_NAME job=0,job_status=\"exceeded_max_runtime\",job_runtime=$(( ($JOB_TIMESTAMP-$EXISTING_SERVICE_TIMESTAMP)/60000000000 )) $EXISTING_SERVICE_TIMESTAMP" \
       || echo "Service task has exited"
 
     # Remove the existing service
@@ -55,5 +55,5 @@ sudo docker service create \
      --secret app_Key \
      microsoft/azure-cli \
      $JOB_SCRIPT \
-  && curl -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "$JOB_NAME job=0,job_status=created $JOB_TIMESTAMP" \
+  && curl -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "$JOB_NAME job=0,job_status=\"created\" $JOB_TIMESTAMP" \
   || echo "Unable to create service"

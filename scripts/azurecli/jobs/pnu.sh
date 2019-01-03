@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "$(date)" pnu > /azmon/log/pnu.txt
+echo "$(date)" pnu
 ########################
 echo "================== pnu.sh - auth"
 
@@ -16,16 +16,16 @@ azmon_login adminmanagement
 echo "================== pnu.sh - logic"
 
 UPDATE_LOCATIONS=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations") \
-    && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=pass_update_locations $JOB_TIMESTAMP" \
-    || { && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=fail_update_locations $JOB_TIMESTAMP" ; exit ; }
+    && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=\"pass_update_locations\" $JOB_TIMESTAMP" \
+    || { && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=\"fail_update_locations\" $JOB_TIMESTAMP" ; exit ; }
 
 STATUS=$(az resource show \
     --name $(echo $UPDATE_LOCATIONS | jq -r ".[0].location") \
     --resource-group $(echo $UPDATE_LOCATIONS | jq -r ".[0].resourceGroup") \
     --resource-type "Microsoft.Update.Admin/updateLocations") \
-          && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=pass_update_status $JOB_TIMESTAMP" \
-          || { && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=fail_update_status $JOB_TIMESTAMP" ; exit ; }
+          && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=\"pass_update_status\" $JOB_TIMESTAMP" \
+          || { && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=\"fail_update_status\" $JOB_TIMESTAMP" ; exit ; }
 
 # Job completed, write job runtime
 CURRENT_TIMESTAMP=$(date --utc +%s%N)
-curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job=1,job_status=pass,job_runtime=$(( ($JOB_TIMESTAMP-$CURRENT_TIMESTAMP)/60000000000 )) $JOB_TIMESTAMP"
+curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job=1,job_status=\"pass\",job_runtime=$(( ($JOB_TIMESTAMP-$CURRENT_TIMESTAMP)/60000000000 )) $JOB_TIMESTAMP"
