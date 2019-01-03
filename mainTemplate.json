@@ -17,7 +17,8 @@
         "triggerId": {
             "type": "int",
             "minValue": 1,
-            "maxValue": 100
+            "maxValue": 100,
+            "defaultValue": 1
         },
         "azureStackRegionFqdn": {
             "type": "string",
@@ -61,7 +62,8 @@
             "appId": "[parameters('appId')]",
             "appKey": "[parameters('appKey')]",
             "tenantName": "[parameters('tenantName')]",
-            "grafanaPassword": "[parameters('grafanaPassword')]"
+            "grafanaPassword": "[parameters('grafanaPassword')]",
+            "linuxUsername":"[parameters('adminUsername')]"
         },
         "singleQuote": "'"
     },

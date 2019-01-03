@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "$(date)" pnu > /azmon/log/pnu.txt
 ########################
 echo "================== pnu.sh - auth"
 

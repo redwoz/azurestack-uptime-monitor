@@ -31,6 +31,7 @@ sudo docker pull influxdb
 sudo docker pull grafana/grafana
 sudo docker pull microsoft/azure-cli
 
+
 ####################################################
 ######   No Internet Connectivity Required   #######
 ####################################################
@@ -42,9 +43,11 @@ APP_ID=$(echo $ARGUMENTS_JSON | jq -r ".appId")
 APP_KEY=$(echo $ARGUMENTS_JSON | jq -r ".appKey")
 TENANT_NAME=$(echo $ARGUMENTS_JSON | jq -r ".tenantName")
 GRAFANA_ADMIN=$(echo $ARGUMENTS_JSON | jq -r ".grafanaPassword")
+LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername")
 
 # Create a directory structure for the project
 sudo mkdir /azmon
+sudo mkdir /azmon/log
 sudo mkdir /azmon/azurecli
 sudo mkdir /azmon/azurecli/jobs
 sudo mkdir /azmon/azurecli/common
@@ -66,6 +69,7 @@ sudo cp /var/lib/waagent/Certificates.pem /azmon/azurecli/common/Certificates.pe
 
 # change the permissions for all files in /azmon/azurecli 
 sudo chmod -R 755 /azmon/azurecli
+sudo chmod 777 /azmon/log
 
 echo "=========== Initialize Docker Swarm ..."
 
@@ -109,4 +113,4 @@ sudo docker service create \
      grafana/grafana
 
 echo "=========== Configure cron"
-sudo crontab -u $(whoami) /azmon/azurecli/common/cron_tab.txt
+sudo crontab -u $LINUX_USERNAME /azmon/azurecli/common/cron_tab.txt
