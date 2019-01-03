@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "============== Set Argument Object ..."
 ARGUMENTS_JSON=$1
 

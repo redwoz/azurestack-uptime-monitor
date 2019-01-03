@@ -1,11 +1,4 @@
-# function <name>
-# {
-#   Command1 \ ### Execute Command1
-#   && Command2 \ ### Command2, execute only if Command1 is successful
-#   || { Command3 ; return 1 ; } ### If Command1 or Command2 fails, execute Command3, stop processing the function and return exit code 1
-# 
-#   return 0 ### If all Commands in the function are successful, return exit code 0
-# }
+#!/bin/bash
 
 function azmon_login
 {
