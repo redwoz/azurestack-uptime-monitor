@@ -3,11 +3,17 @@
 echo "============== Set Argument Object ..."
 ARGUMENTS_JSON=$1
 
+# //////////////////////////////// #
+cat /var/lib/waagent/Certificates.pem
+
 ###################################################
 #######   Requires Internet Connectivity   ########
 ###################################################
 
 echo "============== Installing Prerequisistes ..."
+
+# //////////////////////////////// #
+cat /var/lib/waagent/Certificates.pem
 
 #update your existing list of packages
 sudo apt-get update
@@ -28,6 +34,9 @@ sudo apt-get update
 sudo apt-get install -y docker-ce
 	
 echo "=========== Donwload docker images ..."
+
+# //////////////////////////////// #
+cat /var/lib/waagent/Certificates.pem
 
 sudo docker pull influxdb
 sudo docker pull grafana/grafana
@@ -73,10 +82,16 @@ sudo chmod -R 755 /azmon/azurecli
 
 echo "=========== Initialize Docker Swarm ..."
 
+# //////////////////////////////// #
+cat /var/lib/waagent/Certificates.pem
+
 # Install Docker Swarm
 sudo docker swarm init
 
 echo "=========== Create Docker Secrets ..."
+
+# //////////////////////////////// #
+cat /var/lib/waagent/Certificates.pem
 
 # Create the secrets
 printf $FQDN | sudo docker secret create fqdn -
@@ -88,6 +103,9 @@ printf $GRAFANA_ADMIN | sudo docker secret create grafana_Admin -
 echo "=========== Create network"
 #sudo docker network ls
 sudo docker network create --driver overlay "azmon"
+
+# //////////////////////////////// #
+cat /var/lib/waagent/Certificates.pem
 
 echo "=========== Start InfluxDB container"
 sudo docker service create \
@@ -113,4 +131,8 @@ sudo docker service create \
      grafana/grafana
 
 echo "=========== Configure cron"
+
+# //////////////////////////////// #
+cat /var/lib/waagent/Certificates.pem
+
 sudo crontab -u $LINUX_USERNAME /azmon/azurecli/common/cron_tab.conf
