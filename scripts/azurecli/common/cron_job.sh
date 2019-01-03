@@ -47,7 +47,6 @@ sudo docker service create \
      --restart-condition none \
      --network="azmon" \
      --mount type=bind,src=/azmon/azurecli,dst=/azmon/azurecli \
-     --mount type=bind,src=/var/lib/waagent/Certificates.pem,dst=/azmon/cert/Certificates.pem \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \

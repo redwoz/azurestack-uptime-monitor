@@ -6,7 +6,7 @@ function azmon_login
   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth=0 $JOB_TIMESTAMP"
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
-  export REQUESTS_CA_BUNDLE=/azmon/cert/Certificates.pem \
+  export REQUESTS_CA_BUNDLE=/azmon/azurecli/common/Certificates.pem \
     && curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth_status=\"pass_ca_bundle\" $JOB_TIMESTAMP" \
     || { curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth_status=\"fail_ca_bundle\" $JOB_TIMESTAMP" ; exit ; }
 
