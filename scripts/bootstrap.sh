@@ -113,4 +113,4 @@ sudo docker service create \
      grafana/grafana
 
 echo "=========== Configure cron"
-sudo crontab -u $LINUX_USERNAME /azmon/azurecli/common/cron_tab.txt
+sudo crontab -u $LINUX_USERNAME /azmon/azurecli/common/cron_tab.conf
