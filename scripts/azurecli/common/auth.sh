@@ -3,7 +3,7 @@
 function azmon_login
 {
   # Write entry in DB indicating auth is starting
-  curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth=0 $JOB_TIMESTAMP"
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth=0 $JOB_TIMESTAMP"
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
   export REQUESTS_CA_BUNDLE=/azmon/cert/Certificates.pem \
