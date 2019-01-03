@@ -17,7 +17,7 @@ echo "================== pnu.sh - logic"
 
 UPDATE_LOCATIONS=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations") \
     && curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=\"pass_update_locations\" $JOB_TIMESTAMP" \
-    || { && curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=\"fail_update_locations\" $JOB_TIMESTAMP" ; exit ; }
+    || { curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME job_status=\"fail_update_locations\" $JOB_TIMESTAMP" ; exit ; }
 
 STATUS=$(az resource show \
     --name $(echo $UPDATE_LOCATIONS | jq -r ".[0].location") \

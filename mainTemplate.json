@@ -12,7 +12,7 @@
             "defaultValue": "azureAdmin"
         },
         "sshPublicKey": {
-            "type": "securestring"
+            "type": "string"
         },
         "triggerId": {
             "type": "int",
