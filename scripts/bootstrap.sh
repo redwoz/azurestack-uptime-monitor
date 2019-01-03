@@ -60,7 +60,7 @@ sudo mkdir /azmon/grafana/dashboards
 # Download the files
 sudo curl -s "$BASE_URI"/scripts/azurecli/common/auth.sh --output /azmon/azurecli/common/auth.sh
 sudo curl -s "$BASE_URI"/scripts/azurecli/common/cron_job.sh --output /azmon/azurecli/common/cron_job.sh
-sudo curl -s "$BASE_URI"/scripts/azurecli/common/cron_tab.txt --output /azmon/azurecli/common/cron_tab.txt
+sudo curl -s "$BASE_URI"/scripts/azurecli/common/cron_tab.txt --output /azmon/azurecli/common/cron_tab.conf
 sudo curl -s "$BASE_URI"/scripts/azurecli/jobs/pnu.sh --output /azmon/azurecli/jobs/pnu.sh
 sudo curl -s "$BASE_URI"/scripts/grafana/dashboards/azmon.json --output /azmon/grafana/dashboards/azmon.json
 sudo curl -s "$BASE_URI"/scripts/grafana/datasources/influxdb.yml --output /azmon/grafana/datasources/influxdb.yml
