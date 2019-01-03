@@ -31,7 +31,7 @@ function azmon_login
     || { curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth_status=\"fail_resourceid_uri\" $JOB_TIMESTAMP" ; exit ; }
 
   ## Get TenantID by selecting value after the last /
-  TENANT_ID=${TENANT_URI##*/}
+  TENANT_ID=${TENANT_URI##*/} \
     && curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth_status=\"pass_get_tenantId\" $JOB_TIMESTAMP" \
     || { curl -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth_status=\"fail_get_tenantId\" $JOB_TIMESTAMP" ; exit ; }
 
