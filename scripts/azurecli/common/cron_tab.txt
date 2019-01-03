@@ -1,2 +1,2 @@
 MAILTO=""
-*/5 * * * * /azmon/azurecli/common/cron_job.sh pnu /azmon/azurecli/jobs/pnu.sh
+*/5 * * * * /azmon/azurecli/common/cron_job.sh pnu /azmon/azurecli/jobs/pnu.sh >> /home/azureAdmin/cron2.log 2>&1
