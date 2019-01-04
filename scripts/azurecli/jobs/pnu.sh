@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "================== pnu.sh - auth"
+echo "================== pnu.sh - auth - $(date)"
 
 # Source functions.sh
 source /azmon/azurecli/common/functions.sh \
@@ -10,7 +10,7 @@ source /azmon/azurecli/common/functions.sh \
 # Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
 azmon_login adminmanagement
 
-echo "================== pnu.sh - logic"
+echo "================== pnu.sh - logic - $(date)"
 
 UPDATE_LOCATIONS=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations") \
   && azmon_log_status pnu_update_locations pass \
