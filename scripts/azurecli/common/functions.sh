@@ -15,7 +15,7 @@ function azmon_log_job
   # If the job or job task has completed, add a field with the task runtime 
   if [ $BIT = 1 ]; then
    CURRENT_TIMESTAMP=$(date --utc +%s%N)
-   RUNTIME=$(( ($JOB_TIMESTAMP-$CURRENT_TIMESTAMP)/60000000000 ))
+   RUNTIME=$(( ($CURRENT_TIMESTAMP-$JOB_TIMESTAMP)/60000000000 ))
 
    echo "# azmon_log_job ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP
