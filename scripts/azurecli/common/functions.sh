@@ -9,12 +9,16 @@ function azmon_log_job
   # The bit is either 0 or 1
   # 0 indicated the job or jobtask is starting, 1 indicates its completed
 
-  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME $TASK=$BIT $JOB_TIMESTAMP"
+  echo "# azmon_log_job $JOB_NAME_$TASK_$BIT"
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME $TASK=$BIT $JOB_TIMESTAMP" | grep HTTP
 
   # If the job or job task has completed, add a field with the task runtime 
   if [ $BIT = 1 ]; then
    CURRENT_TIMESTAMP=$(date --utc +%s%N)
-   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME $TASK_runtime=$(( ($JOB_TIMESTAMP-$CURRENT_TIMESTAMP)/60000000000 )) $JOB_TIMESTAMP" 
+   RUNTIME=$(( ($JOB_TIMESTAMP-$CURRENT_TIMESTAMP)/60000000000 ))
+
+   echo "# azmon_log_job $JOB_NAME_$TASK_runtime_$RUNTIME"
+   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME $TASK_runtime=$RUNTIME $JOB_TIMESTAMP" | grep HTTP
   fi  
 
 } 
@@ -24,7 +28,7 @@ function azmon_log_status
   TASK=$1 # Name of the job or jobtask being executed
   STATUS=$2 # Status is either pass or fail
 
-  echo "$JOB_NAME_$STATUS_$TASK"
+  echo "# azmon_log_status $JOB_NAME_$STATUS_$TASK"
   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME status=\"$STATUS_$TASK\" $JOB_TIMESTAMP" | grep HTTP
   if [ $STATUS = "fail" ]; then
    exit 
@@ -33,9 +37,8 @@ function azmon_log_status
 
 function azmon_login
 {
-  azmon_log_job auth 0
   # Write entry in DB indicating auth is starting
-  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME auth=0 $JOB_TIMESTAMP"
+  azmon_log_job auth 0
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
   export REQUESTS_CA_BUNDLE=/azmon/azurecli/common/Certificates.pem \

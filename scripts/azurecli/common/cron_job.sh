@@ -55,5 +55,5 @@ sudo docker service create \
      --secret app_Key \
      microsoft/azure-cli \
      $JOB_SCRIPT \
-  && curl -s -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "$JOB_NAME job=0,status=\"docker_service_created\" $JOB_TIMESTAMP" \
+  && curl -s -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "$JOB_NAME job=0,status=\"docker_service_created\" $JOB_TIMESTAMP" | grep HTTP \
   || echo "Unable to create docker service"
