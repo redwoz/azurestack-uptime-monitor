@@ -58,7 +58,7 @@ sudo mkdir /azmon/grafana/datasources
 sudo mkdir /azmon/grafana/dashboards
 
 # Download the files
-sudo curl -s "$BASE_URI"/scripts/azurecli/common/auth.sh --output /azmon/azurecli/common/auth.sh
+sudo curl -s "$BASE_URI"/scripts/azurecli/common/functions.sh --output /azmon/azurecli/common/functions.sh
 sudo curl -s "$BASE_URI"/scripts/azurecli/common/cron_job.sh --output /azmon/azurecli/common/cron_job.sh
 sudo curl -s "$BASE_URI"/scripts/azurecli/common/cron_tab.conf --output /azmon/azurecli/common/cron_tab.conf
 sudo curl -s "$BASE_URI"/scripts/azurecli/jobs/pnu.sh --output /azmon/azurecli/jobs/pnu.sh
