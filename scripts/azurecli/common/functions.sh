@@ -9,16 +9,16 @@ function azmon_log_job
   # The bit is either 0 or 1
   # 0 indicated the job or jobtask is starting, 1 indicates its completed
 
-  echo "# azmon_log_job $JOB_NAME_$TASK_$BIT"
-  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME $TASK=$BIT $JOB_TIMESTAMP" | grep HTTP
+  echo "# azmon_log_job ${JOB_NAME} ${TASK} ${BIT}"
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}=${BIT} ${JOB_TIMESTAMP}" | grep HTTP
 
   # If the job or job task has completed, add a field with the task runtime 
   if [ $BIT = 1 ]; then
    CURRENT_TIMESTAMP=$(date --utc +%s%N)
    RUNTIME=$(( ($JOB_TIMESTAMP-$CURRENT_TIMESTAMP)/60000000000 ))
 
-   echo "# azmon_log_job $JOB_NAME_$TASK_runtime_$RUNTIME"
-   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME $TASK_runtime=$RUNTIME $JOB_TIMESTAMP" | grep HTTP
+   echo "# azmon_log_job ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
+   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP
   fi  
 
 } 
@@ -28,8 +28,8 @@ function azmon_log_status
   TASK=$1 # Name of the job or jobtask being executed
   STATUS=$2 # Status is either pass or fail
 
-  echo "# azmon_log_status $JOB_NAME_$STATUS_$TASK"
-  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "$JOB_NAME status=\"$STATUS_$TASK\" $JOB_TIMESTAMP" | grep HTTP
+  echo "# azmon_log_status ${JOB_NAME} ${STATUS} ${TASK}"
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} status=\"${STATUS}_${TASK}\" ${JOB_TIMESTAMP}" | grep HTTP
   if [ $STATUS = "fail" ]; then
    exit 
   fi  
