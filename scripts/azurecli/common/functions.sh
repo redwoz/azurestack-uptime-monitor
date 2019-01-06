@@ -6,8 +6,8 @@ function azmon_log_job
   # Can be job (indicating the start or the completion of the full job)
   # or can be the name of the task within a job (e.g. auth)
   BIT=$2
-  # The bit is either 0 or 1
-  # 0 indicated the job or jobtask is starting, 1 indicates its completed
+  # The bit is either -1 or 1
+  # -1 indicated the job or jobtask is starting, 1 indicates its completed
 
   echo "# azmon_log_job ${JOB_NAME} ${TASK} ${BIT}"
   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}=${BIT} ${JOB_TIMESTAMP}" | grep HTTP
@@ -38,7 +38,7 @@ function azmon_log_status
 function azmon_login
 {
   # Write entry in DB indicating auth is starting
-  azmon_log_job auth 0
+  azmon_log_job auth -1
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
   export REQUESTS_CA_BUNDLE=/azmon/azurecli/common/Certificates.pem \
