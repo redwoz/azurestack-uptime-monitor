@@ -3,7 +3,7 @@ FUNCTIONS_SCRIPT_VERSION=0.1
 
 echo "## Version functions.sh  : $FUNCTIONS_SCRIPT_VERSION"
 
-function azmon_log_job
+function azmon_log_field
 {
   FIELD_NAME=$1 
   # can be job (indicating the start or the completion of the full job)
@@ -12,21 +12,11 @@ function azmon_log_job
   FIELD_VALUE=$2
   # -1 indicated the job or jobtask is starting, 1 indicates its completed
 
-  echo "## Task: azmon_log_job ${JOB_NAME} ${TASK} ${BIT}"
+  echo "## Task: azmon_log_job ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
-
-  # If the job or job task has completed, add a field with the task runtime 
-  if [ $BIT = 1 ]; then
-
-   RUNTIME=$(( $(date --utc +%s) - $(date -d @$(($JOB_TIMESTAMP/1000000000)) +%s) ))
-   
-   echo "## Task: azmon_log_job ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
-   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP
-  fi  
-
 } 
 
-function azmon_log_status 
+function azmon_log_status
 {
   TASK=$1 # Name of the job or jobtask being executed
   STATUS=$2 # Status is either pass or fail
@@ -38,10 +28,22 @@ function azmon_log_status
   fi  
 } 
 
+function azmon_log_runtime
+{
+  TASK=$1 
+  # can be job (indicating the start or the completion of the full job)
+  # can be the name of the task within a job (e.g. auth)
+
+  RUNTIME=$(( $(date --utc +%s) - $(date -d @$(($JOB_TIMESTAMP/1000000000)) +%s) ))
+   
+  echo "## Task: azmon_log_job ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP 
+} 
+
 function azmon_login
 {
   # Write entry in DB indicating auth is starting
-  azmon_log_job auth -1
+  azmon_log_field auth -1
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
   export REQUESTS_CA_BUNDLE=/azmon/azurecli/common/Certificates.pem \
@@ -78,6 +80,10 @@ function azmon_login
     && azmon_log_status auth_login pass \
     || azmon_log_status auth_login fail
   
-  azmon_log_job auth 1
+  # Update log with runtime for auth task
+  azmon_log_runtime auth
+  # Update log with completed auth task 
+  azmon_log_field auth 1
+  
   return 0
 }

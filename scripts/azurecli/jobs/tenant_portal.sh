@@ -13,13 +13,15 @@ source /azmon/azurecli/common/functions.sh \
   || { echo "Failed to source functions.sh" ; exit ; }
 
 # Add script version job
-azmon_log_job version $SCRIPT_VERSION
+azmon_log_field version $SCRIPT_VERSION
 
 echo "## Task: connect"
 
-openssl s_client -connect portal.$(cat /run/secrets/fqdn):443
+openssl s_client -connect portal.$(cat /run/secrets/fqdn):443 \
   && azmon_log_status portaladmin_openssl_connect pass \
   || azmon_log_status portaladmin_openssl_connect fail
 
-# Job completed, write job runtime
-azmon_log_job job 1
+# Update log with runtime for job
+azmon_log_runtime job
+# Update log with completed job 
+azmon_log_field job 1
