@@ -5,15 +5,17 @@ echo "############ Date     : $(date)"
 echo "############ Job name : $JOB_NAME"
 echo "############ Version  : $SCRIPT_VERSION"
 
-# Add script version job
-azmon_log_job version $SCRIPT_VERSION
-
-echo "## Task: auth"
+echo "## Task: source functions"
 
 # Source functions.sh
 source /azmon/azurecli/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
+
+# Add script version job
+azmon_log_job version $SCRIPT_VERSION
+
+echo "## Task: auth"
 
 # Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
 azmon_login adminmanagement

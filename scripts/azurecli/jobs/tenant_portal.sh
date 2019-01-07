@@ -5,6 +5,13 @@ echo "############ Date     : $(date)"
 echo "############ Job name : $JOB_NAME"
 echo "############ Version  : $SCRIPT_VERSION"
 
+echo "## Task: source functions"
+
+# Source functions.sh
+source /azmon/azurecli/common/functions.sh \
+  && echo "Sourced functions.sh" \
+  || { echo "Failed to source functions.sh" ; exit ; }
+
 # Add script version job
 azmon_log_job version $SCRIPT_VERSION
 

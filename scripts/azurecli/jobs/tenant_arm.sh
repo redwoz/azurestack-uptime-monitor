@@ -5,6 +5,13 @@ echo "############ Date     : $(date)"
 echo "############ Job name : $JOB_NAME"
 echo "############ Version  : $SCRIPT_VERSION"
 
+echo "## Task: source functions"
+
+# Source functions.sh
+source /azmon/azurecli/common/functions.sh \
+  && echo "Sourced functions.sh" \
+  || { echo "Failed to source functions.sh" ; exit ; }
+
 # Add script version job
 azmon_log_job version $SCRIPT_VERSION
 
@@ -15,11 +22,6 @@ openssl s_client -connect management.$(cat /run/secrets/fqdn):443
   || azmon_log_status armtenant_openssl_connect fail
 
 echo "## Task: auth"
-
-# Source functions.sh
-source /azmon/azurecli/common/functions.sh \
-  && echo "Sourced functions.sh" \
-  || { echo "Failed to source functions.sh" ; exit ; }
 
 # Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
 azmon_login management

@@ -21,6 +21,8 @@ do
     sudo curl ${BASE_URI}/scripts${i} --output /azmon${i}
 done
 
+sudo chmod -R 755 /azmon/azurecli
+
 # Delete existing crontab and create a new one
 sudo crontab -u $LINUX_USERNAME -r
 sudo crontab -u $LINUX_USERNAME /azmon/azurecli/common/cron_tab.conf
