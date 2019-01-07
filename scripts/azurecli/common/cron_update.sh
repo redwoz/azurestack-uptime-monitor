@@ -18,7 +18,7 @@ SCRIPT_ARRAY=(
 
 for i in "${SCRIPT_ARRAY[@]}"
 do
-    sudo curl ${BASE_URI}/scripts${i} --output /azmon${i}
+    sudo curl -s ${BASE_URI}/scripts${i} --output /azmon${i}
 done
 
 sudo chmod -R 755 /azmon/azurecli
