@@ -17,7 +17,7 @@ azmon_log_field version $SCRIPT_VERSION
 
 echo "## Task: connect"
 
-openssl s_client -connect management.$(cat /run/secrets/fqdn):443 \
+openssl s_client -connect management.$(cat /run/secrets/fqdn):443 -servername management.$(cat /run/secrets/fqdn) \
   && azmon_log_status armtenant_openssl_connect pass \
   || azmon_log_status armtenant_openssl_connect fail
 
