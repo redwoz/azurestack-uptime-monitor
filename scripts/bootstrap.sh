@@ -61,7 +61,7 @@ sudo mkdir /azmon/grafana/dashboards
 sudo cp /var/lib/waagent/Certificates.pem /azmon/azurecli/common/Certificates.pem
 
 # Download the files
-SCRIPT_ARRAY=(
+FILES_ARRAY=(
     /azurecli/common/functions.sh
     /azurecli/common/cron_job.sh
     /azurecli/common/cron_tab.conf

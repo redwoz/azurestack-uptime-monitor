@@ -15,22 +15,16 @@ source /azmon/azurecli/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
-echo "## Task: connect"
-
-openssl s_client -connect management.$(cat /run/secrets/fqdn):443 \
-  && azmon_log_status armtenant_openssl_connect pass \
-  || azmon_log_status armtenant_openssl_connect fail
-
 echo "## Task: auth"
 
 # Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
 azmon_login management
 
-echo "## Task: get resources"
+echo "## Task: read storage"
 
 $(az resource list) \
-  && azmon_log_status armadmin_list_resources pass \
-  || azmon_log_status armadmin_list_resources fail
+  && azmon_log_status tenant_read_storage pass \
+  || azmon_log_status tenant_read_storage fail
 
 # Update log with runtime for job
 azmon_log_runtime job
