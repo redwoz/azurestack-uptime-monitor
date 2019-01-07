@@ -1,4 +1,5 @@
 #!/bin/bash
+#SCRIPT_VERSION=0.1
 
 echo "=========== Job arguments"
 JOB_NAME=$1

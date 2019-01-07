@@ -1,23 +1,26 @@
 #!/bin/bash
+FUNCTIONS_SCRIPT_VERSION=0.1
+
+echo "## Version functions.sh  : $FUNCTIONS_SCRIPT_VERSION"
 
 function azmon_log_job
 {
-  TASK=$1 
-  # Can be job (indicating the start or the completion of the full job)
-  # or can be the name of the task within a job (e.g. auth)
-  BIT=$2
-  # The bit is either -1 or 1
+  FIELD_NAME=$1 
+  # can be job (indicating the start or the completion of the full job)
+  # can be the name of the task within a job (e.g. auth)
+  # or can be the name of another field to add (e.g. version)
+  FIELD_VALUE=$2
   # -1 indicated the job or jobtask is starting, 1 indicates its completed
 
-  echo "# azmon_log_job ${JOB_NAME} ${TASK} ${BIT}"
-  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}=${BIT} ${JOB_TIMESTAMP}" | grep HTTP
+  echo "## Task: azmon_log_job ${JOB_NAME} ${TASK} ${BIT}"
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
 
   # If the job or job task has completed, add a field with the task runtime 
   if [ $BIT = 1 ]; then
 
    RUNTIME=$(( $(date --utc +%s) - $(date -d @$(($JOB_TIMESTAMP/1000000000)) +%s) ))
    
-   echo "# azmon_log_job ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
+   echo "## Task: azmon_log_job ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP
   fi  
 
@@ -28,7 +31,7 @@ function azmon_log_status
   TASK=$1 # Name of the job or jobtask being executed
   STATUS=$2 # Status is either pass or fail
 
-  echo "# azmon_log_status ${JOB_NAME} ${STATUS} ${TASK}"
+  echo "## Task: azmon_log_status ${JOB_NAME} ${STATUS} ${TASK}"
   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} status=\"${STATUS}_${TASK}\" ${JOB_TIMESTAMP}" | grep HTTP
   if [ $STATUS = "fail" ]; then
    exit 

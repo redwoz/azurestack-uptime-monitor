@@ -1,6 +1,14 @@
 #!/bin/bash
+SCRIPT_VERSION=0.1
 
-echo "================== pnu.sh - auth - $(date)"
+echo "############ Date     : $(date)"
+echo "############ Job name : $JOB_NAME"
+echo "############ Version  : $SCRIPT_VERSION"
+
+# Add script version job
+azmon_log_job version $SCRIPT_VERSION
+
+echo "## Task: auth"
 
 # Source functions.sh
 source /azmon/azurecli/common/functions.sh \
@@ -10,7 +18,7 @@ source /azmon/azurecli/common/functions.sh \
 # Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
 azmon_login adminmanagement
 
-echo "================== pnu.sh - logic - $(date)"
+echo "## Task: Get Locations"
 
 UPDATE_LOCATIONS=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations") \
   && azmon_log_status pnu_update_locations pass \
