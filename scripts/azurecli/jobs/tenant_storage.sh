@@ -22,7 +22,7 @@ azmon_login management
 
 echo "## Task: read storage"
 
-$(az resource list) \
+az resource list \
   && azmon_log_status tenant_read_storage pass \
   || azmon_log_status tenant_read_storage fail
 
