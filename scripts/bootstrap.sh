@@ -57,16 +57,26 @@ sudo mkdir /azmon/grafana
 sudo mkdir /azmon/grafana/datasources
 sudo mkdir /azmon/grafana/dashboards
 
-# Download the files
-sudo curl -s "$BASE_URI"/scripts/azurecli/common/functions.sh --output /azmon/azurecli/common/functions.sh
-sudo curl -s "$BASE_URI"/scripts/azurecli/common/cron_job.sh --output /azmon/azurecli/common/cron_job.sh
-sudo curl -s "$BASE_URI"/scripts/azurecli/common/cron_tab.conf --output /azmon/azurecli/common/cron_tab.conf
-sudo curl -s "$BASE_URI"/scripts/azurecli/jobs/pnu.sh --output /azmon/azurecli/jobs/pnu.sh
-sudo curl -s "$BASE_URI"/scripts/grafana/dashboards/azmon.json --output /azmon/grafana/dashboards/azmon.json
-sudo curl -s "$BASE_URI"/scripts/grafana/datasources/influxdb.yml --output /azmon/grafana/datasources/influxdb.yml
-
 # Copy the waagent cert to the project folder
 sudo cp /var/lib/waagent/Certificates.pem /azmon/azurecli/common/Certificates.pem
+
+# Download the files
+SCRIPT_ARRAY=(
+    /azurecli/common/functions.sh
+    /azurecli/common/cron_job.sh
+    /azurecli/common/cron_tab.conf
+    /azurecli/jobs/admin_arm.sh
+    /azurecli/jobs/admin_portal.sh
+    /azurecli/jobs/admin_pnu.sh
+    /azurecli/jobs/tenant_arm.sh
+    /azurecli/jobs/tenant_portal.sh
+    /azurecli/jobs/tenant_storage.sh
+)
+
+for i in "${SCRIPT_ARRAY[@]}"
+do
+    sudo curl -s ${BASE_URI}/scripts${i} --output /azmon${i}
+done
 
 # change the permissions for all files in /azmon/azurecli 
 sudo chmod -R 755 /azmon/azurecli

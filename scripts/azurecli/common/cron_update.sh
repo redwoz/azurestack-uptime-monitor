@@ -21,6 +21,7 @@ do
     sudo curl -s ${BASE_URI}/scripts${i} --output /azmon${i}
 done
 
+# change the permissions for all files in /azmon/azurecli 
 sudo chmod -R 755 /azmon/azurecli
 
 # Delete existing crontab and create a new one
