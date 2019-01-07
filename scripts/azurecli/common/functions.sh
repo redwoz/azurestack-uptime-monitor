@@ -12,7 +12,7 @@ function azmon_log_field
   FIELD_VALUE=$2
   # -1 indicated the job or jobtask is starting, 1 indicates its completed
 
-  echo "## Task: azmon_log_job ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
+  echo "## Task: azmon_log_field ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
 } 
 
@@ -36,7 +36,7 @@ function azmon_log_runtime
 
   RUNTIME=$(( $(date --utc +%s) - $(date -d @$(($JOB_TIMESTAMP/1000000000)) +%s) ))
    
-  echo "## Task: azmon_log_job ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
+  echo "## Task: azmon_log_runtime ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
   curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP 
 } 
 
