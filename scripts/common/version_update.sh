@@ -1,15 +1,18 @@
 #!/bin/bash
 #SCRIPT_VERSION=0.1
 
-sudo cat /azmon/common/files.json | jq -r ".jobs[] | .name"
-
 LINUX_USERNAME=azureAdmin
 BASE_URI=https://raw.githubusercontent.com/marcvaneijk/azurestack-monitor/master
 
+# Download files.json (contains a reference to all other files)
+sudo curl -s ${BASE_URI}/common/files.json --output /azmon/common/files.json
 
-for i in "${SCRIPT_ARRAY[@]}"
+# Download the all the files from files.json
+FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[] | .path")
+
+for i in $FILES_ARRAY
 do
-    sudo curl -s ${BASE_URI}/scripts${i} --output /azmon${i}
+    sudo curl ${BASE_URI}/scripts${i} --output /azmon${i}
 done
 
 # change the permissions for all files in /azmon for jobs and common

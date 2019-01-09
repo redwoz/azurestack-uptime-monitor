@@ -62,23 +62,12 @@ sudo cp /var/lib/waagent/Certificates.pem /azmon/common/Certificates.pem
 sudo curl -s ${BASE_URI}/common/files.json --output /azmon/common/files.json
 
 # Download the all the files from files.json
-sudo cat /azmon/common/files.json | jq -r ".jobs[] | .name"
+FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[] | .path")
+#sudo cat /azmon/common/files.json | jq -r ".jobs[] | .path"
 
-FILES_ARRAY=(
-    /azurecli/common/functions.sh
-    /azurecli/common/cron_job.sh
-    /azurecli/common/cron_tab.conf
-    /azurecli/jobs/admin_arm.sh
-    /azurecli/jobs/admin_portal.sh
-    /azurecli/jobs/admin_pnu.sh
-    /azurecli/jobs/tenant_arm.sh
-    /azurecli/jobs/tenant_portal.sh
-    /azurecli/jobs/tenant_storage.sh
-)
-
-for i in "${SCRIPT_ARRAY[@]}"
+for i in $FILES_ARRAY
 do
-    sudo curl -s ${BASE_URI}/scripts${i} --output /azmon${i}
+    sudo curl ${BASE_URI}/scripts${i} --output /azmon${i}
 done
 
 # change the permissions for all files in /azmon/azurecli 

@@ -8,7 +8,7 @@ echo "############ Version  : $SCRIPT_VERSION"
 echo "## Task: source functions"
 
 # Source functions.sh
-source /azmon/jobs/functions.sh \
+source /azmon/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 

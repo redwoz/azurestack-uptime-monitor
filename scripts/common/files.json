@@ -1,10 +1,6 @@
 {
     "jobs": [
         {
-            "name": "functions",
-            "path": "/jobs/functions.sh"
-        },
-        {
             "name": "admin-arm",
             "path": "/jobs/admin-arm.sh"
         },
@@ -45,6 +41,10 @@
         {
             "name": "files",
             "path": "/common/files.json"
+        },
+        {
+            "name": "functions",
+            "path": "/jobs/functions.sh"
         },
         {
             "name": "version_update",
