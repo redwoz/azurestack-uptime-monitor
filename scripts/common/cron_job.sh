@@ -47,7 +47,8 @@ sudo docker service create \
      --detach \
      --restart-condition none \
      --network="azmon" \
-     --mount type=bind,src=/azmon/azurecli,dst=/azmon/azurecli \
+     --mount type=bind,src=/azmon/common,dst=/azmon/common \
+     --mount type=bind,src=/azmon/jobs,dst=/azmon/jobs \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \

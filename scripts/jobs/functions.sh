@@ -46,7 +46,7 @@ function azmon_login
   azmon_log_field auth -1
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
-  export REQUESTS_CA_BUNDLE=/azmon/azurecli/common/Certificates.pem \
+  export REQUESTS_CA_BUNDLE=/azmon/common/Certificates.pem \
     && azmon_log_status auth_ca_bundle pass \
     || azmon_log_status auth_ca_bundle fail
 

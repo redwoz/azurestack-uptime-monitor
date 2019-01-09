@@ -1,0 +1,66 @@
+{
+    "jobs": [
+        {
+            "name": "functions",
+            "path": "/jobs/functions.sh"
+        },
+        {
+            "name": "admin-arm",
+            "path": "/jobs/admin-arm.sh"
+        },
+        {
+            "name": "admin-portal",
+            "path": "/jobs/admin-portal.sh"
+        },
+        {
+            "name": "admin-pnu",
+            "path": "/jobs/admin-pnu.sh"
+        },
+        {
+            "name": "tenant-arm",
+            "path": "/jobs/tenant-arm.sh"
+        },
+        {
+            "name": "tenant-portal",
+            "path": "/jobs/tenant-portal.sh"
+        },
+        {
+            "name": "tenant-storage",
+            "path": "/jobs/tenant-storage.sh"
+        }
+    ],
+    "common": [
+        {
+            "name": "cron_job",
+            "path": "/common/cron_job.sh"
+        },
+        {
+            "name": "cron_tab",
+            "path": "/common/cron_tab.conf"
+        },
+        {
+            "name": "csv_export",
+            "path": "/common/csv_export.sh"
+        },
+        {
+            "name": "files",
+            "path": "/common/files.json"
+        },
+        {
+            "name": "version_update",
+            "path": "/common/version_update.sh"
+        }
+    ],
+    "dashboards": [
+        {
+            "name": "availability",
+            "path": "/grafana/dashboards/availability.json"
+        }
+    ],
+    "datasources": [
+        {
+            "name": "influxdb",
+            "path": "/grafana/datasources/influxdb.yml"
+        }
+    ]
+}

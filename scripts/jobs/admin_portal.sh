@@ -5,26 +5,21 @@ echo "############ Date     : $(date)"
 echo "############ Job name : $JOB_NAME"
 echo "############ Version  : $SCRIPT_VERSION"
 
-# Add script version job
-azmon_log_field version $SCRIPT_VERSION
-
 echo "## Task: source functions"
 
 # Source functions.sh
-source /azmon/azurecli/common/functions.sh \
+source /azmon/jobs/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
-echo "## Task: auth"
+# Add script version job
+azmon_log_field version $SCRIPT_VERSION
 
-# Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
-azmon_login management
+echo "## Task: connect"
 
-echo "## Task: read storage"
-
-az resource list \
-  && azmon_log_status tenant_read_storage pass \
-  || azmon_log_status tenant_read_storage fail
+openssl s_client -connect adminportal.$(cat /run/secrets/fqdn):443 -servername adminportal.$(cat /run/secrets/fqdn) \
+  && azmon_log_status portaladmin_openssl_connect pass \
+  || azmon_log_status portaladmin_openssl_connect fail
 
 # Update log with runtime for job
 azmon_log_runtime job

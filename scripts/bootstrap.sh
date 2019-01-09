@@ -49,18 +49,21 @@ LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername")
 
 # Create a directory structure for the project
 sudo mkdir /azmon
-sudo mkdir /azmon/azurecli
-sudo mkdir /azmon/azurecli/jobs
-sudo mkdir /azmon/azurecli/common
+sudo mkdir /azmon/jobs
+sudo mkdir /azmon/common
 sudo mkdir /azmon/influxdb
 sudo mkdir /azmon/grafana
-sudo mkdir /azmon/grafana/datasources
-sudo mkdir /azmon/grafana/dashboards
+sudo mkdir /azmon/export
 
 # Copy the waagent cert to the project folder
-sudo cp /var/lib/waagent/Certificates.pem /azmon/azurecli/common/Certificates.pem
+sudo cp /var/lib/waagent/Certificates.pem /azmon/common/Certificates.pem
 
-# Download the files
+# Download files.json (contains a reference to all other files)
+sudo curl -s ${BASE_URI}/common/files.json --output /azmon/common/files.json
+
+# Download the all the files from files.json
+sudo cat /azmon/common/files.json | jq -r ".jobs[] | .name"
+
 FILES_ARRAY=(
     /azurecli/common/functions.sh
     /azurecli/common/cron_job.sh
@@ -79,7 +82,8 @@ do
 done
 
 # change the permissions for all files in /azmon/azurecli 
-sudo chmod -R 755 /azmon/azurecli
+sudo chmod -R 755 /azmon/jobs
+sudo chmod -R 755 /azmon/common
 
 echo "=========== Initialize Docker Swarm ..."
 
@@ -123,4 +127,4 @@ sudo docker service create \
      grafana/grafana
 
 echo "=========== Configure cron"
-sudo crontab -u $LINUX_USERNAME /azmon/azurecli/common/cron_tab.conf
+sudo crontab -u $LINUX_USERNAME /azmon/common/cron_tab.conf
