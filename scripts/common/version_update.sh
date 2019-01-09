@@ -5,7 +5,7 @@ LINUX_USERNAME=azureAdmin
 BASE_URI=https://raw.githubusercontent.com/marcvaneijk/azurestack-monitor/master
 
 # Download files.json (contains a reference to all other files)
-sudo curl -s ${BASE_URI}/common/files.json --output /azmon/common/files.json
+sudo curl ${BASE_URI}/scripts/common/files.json --output /azmon/common/files.json
 
 # Download the all the files from files.json
 FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[] | .path")

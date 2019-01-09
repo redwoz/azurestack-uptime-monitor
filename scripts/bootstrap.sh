@@ -59,7 +59,7 @@ sudo mkdir /azmon/export
 sudo cp /var/lib/waagent/Certificates.pem /azmon/common/Certificates.pem
 
 # Download files.json (contains a reference to all other files)
-sudo curl -s ${BASE_URI}/common/files.json --output /azmon/common/files.json
+sudo curl -s ${BASE_URI}/scripts/common/files.json --output /azmon/common/files.json
 
 # Download the all the files from files.json
 FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[] | .path")
