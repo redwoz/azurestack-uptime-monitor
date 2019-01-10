@@ -61,6 +61,8 @@ sudo mkdir /azmon/jobs
 sudo mkdir /azmon/common
 sudo mkdir /azmon/influxdb
 sudo mkdir /azmon/grafana
+sudo mkdir /azmon/grafana/datasources
+sudo mkdir /azmon/grafana/dashboards
 sudo mkdir /azmon/export
 
 # Copy the waagent cert to the project folder
