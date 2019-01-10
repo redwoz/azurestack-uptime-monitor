@@ -1,28 +1,28 @@
 {
     "jobs": [
         {
-            "name": "admin-arm",
-            "path": "/jobs/admin-arm.sh"
+            "name": "admin_arm",
+            "path": "/jobs/admin_arm.sh"
         },
         {
-            "name": "admin-portal",
-            "path": "/jobs/admin-portal.sh"
+            "name": "admin_portal",
+            "path": "/jobs/admin_portal.sh"
         },
         {
-            "name": "admin-pnu",
-            "path": "/jobs/admin-pnu.sh"
+            "name": "admin_pnu",
+            "path": "/jobs/admin_pnu.sh"
         },
         {
-            "name": "tenant-arm",
-            "path": "/jobs/tenant-arm.sh"
+            "name": "tenant_arm",
+            "path": "/jobs/tenant_arm.sh"
         },
         {
-            "name": "tenant-portal",
-            "path": "/jobs/tenant-portal.sh"
+            "name": "tenant_portal",
+            "path": "/jobs/tenant_portal.sh"
         },
         {
-            "name": "tenant-storage",
-            "path": "/jobs/tenant-storage.sh"
+            "name": "tenant_storage",
+            "path": "/jobs/tenant_storage.sh"
         }
     ],
     "common": [
