@@ -143,6 +143,20 @@
                             "protocol": "Tcp",
                             "enableTcpReset": false
                         }
+                    },
+                    {
+                        "name": "Nginx",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/frontendIPConfigurations/',variables('names').lb,'-fe')]"
+                            },
+                            "frontendPort": 8080,
+                            "backendPort": 8080,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 4,
+                            "protocol": "Tcp",
+                            "enableTcpReset": false
+                        }
                     }
                 ],
                 "outboundRules": []
@@ -178,6 +192,19 @@
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*",
                             "destinationPortRange": "3000"
+                        }
+                    },
+                    {
+                        "name": "Nginx",
+                        "properties": {
+                            "priority": 302,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "8080"
                         }
                     }
                 ]

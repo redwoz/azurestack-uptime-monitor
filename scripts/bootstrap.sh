@@ -130,7 +130,7 @@ sudo docker service create \
      --restart-condition any \
      --network="azmon" \
      --mount type=bind,src=/azmon/export,dst=/azmon/export \
-     --publish published=80,target=80 \
+     --publish published=8080,target=80 \
      nginx
 
 echo "=========== Configure cron"
