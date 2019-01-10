@@ -65,18 +65,8 @@ function azmon_login
     && azmon_log_status auth_set_apiprofile pass \
     || azmon_log_status auth_set_apiprofile fail
 
-  ## Get activeDirectoryResourceId
-  TENANT_URI=$(az cloud show -n AzureStackCloud | jq -r ".endpoints.activeDirectoryResourceId") \
-    && azmon_log_status auth_get_resourceid_uri pass \
-    || azmon_log_status auth_get_resourceid_uri fail
-
-  ## Get TenantID by selecting value after the last /
-  TENANT_ID=${TENANT_URI##*/} \
-    && azmon_log_status auth_get_tenantid pass \
-    || azmon_log_status auth_get_tenantid fail
-
   ## Sign in as SPN
-  az login --service-principal --tenant $TENANT_ID -u $(cat /run/secrets/app_Id) -p $(cat /run/secrets/app_Key) \
+  az login --service-principal --tenant $TENANT_ID $(cat /run/secrets/tenant_Id) -u $(cat /run/secrets/app_Id) -p $(cat /run/secrets/app_Key) \
     && azmon_log_status auth_login pass \
     || azmon_log_status auth_login fail
   

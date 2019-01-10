@@ -55,6 +55,7 @@ sudo docker service create \
      --secret subscription_Id \
      --secret app_Id \
      --secret app_Key \
+     --secret tenant_Id \
      microsoft/azure-cli \
      $JOB_SCRIPT \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "${JOB_NAME} job=-1,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \

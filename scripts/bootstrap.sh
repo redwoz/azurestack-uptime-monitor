@@ -2,6 +2,8 @@
 
 echo "============== Set Argument Object ..."
 ARGUMENTS_JSON=$1
+ARGUMENTS_BLOB_ENDPOINT=$2
+
 
 ###################################################
 #######   Requires Internet Connectivity   ########
@@ -32,18 +34,24 @@ echo "=========== Donwload docker images ..."
 sudo docker pull influxdb
 sudo docker pull grafana/grafana
 sudo docker pull microsoft/azure-cli
-
+sudo docker pull nginx
 
 ####################################################
 ######   No Internet Connectivity Required   #######
 ####################################################
 
+# FQDN Remove storageaccountname. from blob endpoint
+FQDN=${ARGUMENTS_BLOB_ENDPOINT#*.}
+# FQDN Remove blob. from blob endpoint
+FQDN=${FQDN#*.}
+# FQDN Remove trailing backslash from blob endpoint
+FQDN=${FQDN%/*}
+
 BASE_URI=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl")
-FQDN=$(echo $ARGUMENTS_JSON | jq -r ".fqdn")
 SUBSCRIPTION_ID=$(echo $ARGUMENTS_JSON | jq -r ".subscriptionId")
 APP_ID=$(echo $ARGUMENTS_JSON | jq -r ".appId")
 APP_KEY=$(echo $ARGUMENTS_JSON | jq -r ".appKey")
-TENANT_NAME=$(echo $ARGUMENTS_JSON | jq -r ".tenantName")
+TENANT_ID=$(echo $ARGUMENTS_JSON | jq -r ".tenantId")
 GRAFANA_ADMIN=$(echo $ARGUMENTS_JSON | jq -r ".grafanaPassword")
 LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername")
 
@@ -63,7 +71,6 @@ sudo curl -s ${BASE_URI}/scripts/common/files.json --output /azmon/common/files.
 
 # Download the all the files from files.json
 FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[] | .path")
-#sudo cat /azmon/common/files.json | jq -r ".jobs[] | .path"
 
 for i in $FILES_ARRAY
 do
@@ -86,6 +93,7 @@ printf $FQDN | sudo docker secret create fqdn -
 printf $SUBSCRIPTION_ID | sudo docker secret create subscription_Id -
 printf $APP_ID | sudo docker secret create app_Id -
 printf $APP_KEY | sudo docker secret create app_Key -
+printf $TENANT_ID | sudo docker secret create tenant_Id -
 printf $GRAFANA_ADMIN | sudo docker secret create grafana_Admin -
 
 echo "=========== Create network"
@@ -114,6 +122,16 @@ sudo docker service create \
      --secret grafana_Admin \
      --env GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana_Admin \
      grafana/grafana
+
+echo "=========== Start NGINX container"
+sudo docker service create \
+     --name nginx \
+     --detach \
+     --restart-condition any \
+     --network="azmon" \
+     --mount type=bind,src=/azmon/export,dst=/azmon/export \
+     --publish published=80,target=80 \
+     nginx
 
 echo "=========== Configure cron"
 sudo crontab -u $LINUX_USERNAME /azmon/common/cron_tab.conf

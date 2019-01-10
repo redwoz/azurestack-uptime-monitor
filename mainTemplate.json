@@ -20,21 +20,11 @@
             "maxValue": 100,
             "defaultValue": 1
         },
-        "azureStackRegionFqdn": {
-            "type": "string",
-            "defaultValue": "local.azurestack.external"
-        },
         "appId": {
             "type": "string"
         },
         "appKey": {
             "type": "securestring"
-        },
-        "tenantName": {
-            "type": "string",
-            "metadata": {
-                "description": "Directory Tenant Name (e.g. microsoft.onmicrosoft.com)"
-            }
         },
         "grafanaPassword": {
             "type": "securestring",
@@ -53,21 +43,29 @@
             "vNet": "[concat(variables('prefix'),'vNet')]",
             "subnet": "[concat(variables('prefix'),'subnet')]",
             "vNic": "[concat(variables('prefix'),'vNic')]",
-            "vm": "[concat(variables('prefix'),'vm')]"
+            "vm": "[concat(variables('prefix'),'vm')]",
+            "storage": "[concat(variables('prefix'),uniqueString(resourceGroup().id))]"
         },
         "scriptArguments": {
             "baseUrl": "[parameters('baseUrl')]",
-            "fqdn": "[parameters('azureStackRegionFqdn')]",
             "subscriptionId": "[subscription().subscriptionId]",
             "appId": "[parameters('appId')]",
             "appKey": "[parameters('appKey')]",
-            "tenantName": "[parameters('tenantName')]",
+            "tenantId": "[subscription().tenantId]",
             "grafanaPassword": "[parameters('grafanaPassword')]",
             "linuxUsername":"[parameters('adminUsername')]"
         },
         "singleQuote": "'"
     },
     "resources": [
+        {
+            "name": "[variables('names').storage]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[resourceGroup().location]",
+            "sku":{
+                "name":"Standard_LRS"
+            }
+        },
         {
             "name": "[variables('names').pubIp]",
             "type": "Microsoft.Network/publicIPAddresses",
@@ -308,7 +306,7 @@
                     "timestamp": "[parameters('triggerId')]"
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('/bin/bash bootstrap.sh ', variables('singleQuote'), string(variables('scriptArguments')), variables('singleQuote'))]",
+                    "commandToExecute": "[concat('/bin/bash bootstrap.sh ', variables('singleQuote'), string(variables('scriptArguments')), variables('singleQuote'),' ',reference(variables('names').storage).primaryEndpoints.blob)]",
                     "fileUris": [
                         "[concat(parameters('baseUrl'),'/scripts/bootstrap.sh')]"
                     ]
