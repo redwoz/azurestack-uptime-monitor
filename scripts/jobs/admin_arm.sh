@@ -13,13 +13,13 @@ source /azmon/common/functions.sh \
   || { echo "Failed to source functions.sh" ; exit ; }
 
 # Add script version job
-azmon_log_field version $SCRIPT_VERSION
+azmon_log_field N script_version $SCRIPT_VERSION
 
 echo "## Task: connect"
 
 openssl s_client -connect adminmanagement.$(cat /run/secrets/fqdn):443 -servername adminmanagement.$(cat /run/secrets/fqdn)  \
-  && azmon_log_status armadmin_openssl_connect pass \
-  || azmon_log_status armadmin_openssl_connect fail
+  && azmon_log_field T status admin_arm_openssl_connect \
+  || azmon_log_field T status admin_arm_openssl_connect fail
 
 echo "## Task: auth"
 
@@ -29,10 +29,10 @@ azmon_login adminmanagement
 echo "## Task: get resources"
 
 $(az resource list) \
-  && azmon_log_status armadmin_list_resources pass \
-  || azmon_log_status armadmin_list_resources fail
+  && azmon_log_field T status admin_arm_list_resources \
+  || azmon_log_field T status admin_arm_list_resources fail
 
 # Update log with runtime for job
 azmon_log_runtime job
 # Update log with completed job 
-azmon_log_field job 1
+azmon_log_field N job 1

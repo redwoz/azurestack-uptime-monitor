@@ -13,7 +13,7 @@ source /azmon/common/functions.sh \
   || { echo "Failed to source functions.sh" ; exit ; }
 
 # Add script version job
-azmon_log_field version $SCRIPT_VERSION
+azmon_log_field N script_version $SCRIPT_VERSION
 
 echo "## Task: auth"
 
@@ -23,10 +23,10 @@ azmon_login management
 echo "## Task: read storage"
 
 az resource list \
-  && azmon_log_status tenant_read_storage pass \
-  || azmon_log_status tenant_read_storage fail
+  && azmon_log_field T status tenant_read_storage \
+  || azmon_log_field T status tenant_read_storage fail
 
 # Update log with runtime for job
 azmon_log_runtime job
 # Update log with completed job 
-azmon_log_field job 1
+azmon_log_field N job 1
