@@ -45,6 +45,7 @@ CURRENT_UPDATE_STATE=$(echo $UPDATE_LOCATION_STATUS | jq -r ".properties.state")
 
 azmon_log_field T pnu_current_update_state_label ${CURRENT_STATE}
 
+# https://docs.microsoft.com/en-us/rest/api/azurestack/updatelocations/list#regionupdatestate
 # 10 = UpdateInProgress 
 # 4  = AppliedUpdateAvailableSuccessfully
 # 2  = AppliedSuccessfully 
