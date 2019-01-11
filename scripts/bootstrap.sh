@@ -15,13 +15,7 @@ echo "============== Installing Prerequisistes ..."
 sudo apt-get update
 
 # prerequisite packages
-sudo apt-get install -y \ 
-  apt-transport-https \
-  ca-certificates \
-  curl \
-  software-properties-common \
-  jq \
-  apache2-utils
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq apache2-utils
 
 # add the GPG key for the official Docker repository
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
