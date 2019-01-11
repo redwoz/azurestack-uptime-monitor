@@ -80,7 +80,7 @@
             "type": "Microsoft.Network/publicIPAddresses",
             "location": "[resourceGroup().location]",
             "properties": {
-                "publicIpAllocationMethod": "dynamic",
+                "publicIpAllocationMethod": "Static",
                 "publicIPAddressVersion": "IPv4",
                 "dnsSettings": {
                     "domainNameLabel": "[variables('names').pubIpDns]"
@@ -357,6 +357,10 @@
         "grafanaEndpoint":{
             "type": "string",
             "value": "[concat('http://',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('names').pubIp)).IpAddress,':3000')]"
+        },
+        "nginxEndpoint":{
+            "type": "string",
+            "value": "[concat('http://',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('names').pubIp)).IpAddress,':8080')]"
         },
         "sshEndpoint":{
             "type": "string",
