@@ -62,5 +62,11 @@
             "name": "influxdb",
             "path": "/grafana/datasources/influxdb.yml"
         }
+    ],
+    "nginx": [
+        {
+            "name": "configuration",
+            "path": "/nginx/nginx.conf"
+        }
     ]
 }

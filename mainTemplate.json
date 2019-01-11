@@ -254,6 +254,9 @@
                                 },
                                 {
                                     "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/inboundNatRules/','Grafana')]"
+                                },
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/inboundNatRules/','Nginx')]"
                                 }
                             ]
                         }

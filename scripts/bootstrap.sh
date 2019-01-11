@@ -132,8 +132,10 @@ sudo docker service create \
      --restart-condition any \
      --network="azmon" \
      --mount type=bind,src=/azmon/export,dst=/azmon/export \
+     --mount type=bind,src=/azmon/nginx/nginx.conf,dst=/etc/nginx/nginx.conf \
      --publish published=8080,target=80 \
      nginx
+
 
 echo "=========== Configure cron"
 sudo crontab -u $LINUX_USERNAME /azmon/common/cron_tab.conf
