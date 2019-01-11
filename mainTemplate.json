@@ -31,6 +31,14 @@
             "metadata": {
                 "description": "Password for the Grafana portal"
             }
+        },
+        "ubuntuSku": {
+            "type": "string",
+            "allowedValues": [
+                "16.04-LTS",
+                "18.04-LTS"
+            ],
+            "defaultValue": "18.04-LTS"
         }
     },
     "variables": {
@@ -56,6 +64,7 @@
             "linuxUsername":"[parameters('adminUsername')]"
         },
         "singleQuote": "'"
+
     },
     "resources": [
         {
@@ -302,7 +311,7 @@
                     "imageReference": {
                         "publisher": "Canonical",
                         "offer": "UbuntuServer",
-                        "sku": "18.04-LTS",
+                        "sku": "[parameters('ubuntuSku')]",
                         "version": "latest"
                     },
                     "osDisk": {
