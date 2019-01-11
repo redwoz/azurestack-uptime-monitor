@@ -14,8 +14,14 @@ echo "============== Installing Prerequisistes ..."
 #update your existing list of packages
 sudo apt-get update
 
-# prerequisite packages which let apt use packages over HTTPS
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq
+# prerequisite packages
+sudo apt-get install -y \ 
+  apt-transport-https \
+  ca-certificates \
+  curl \
+  software-properties-common \
+  jq \
+  apache2-utils
 
 # add the GPG key for the official Docker repository
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -64,6 +70,7 @@ sudo mkdir /azmon/grafana
 sudo mkdir /azmon/grafana/datasources
 sudo mkdir /azmon/grafana/dashboards
 sudo mkdir /azmon/export
+sudo mkdir /azmon/nginx
 
 # Copy the waagent cert to the project folder
 sudo cp /var/lib/waagent/Certificates.pem /azmon/common/Certificates.pem
@@ -90,13 +97,16 @@ sudo docker swarm init
 
 echo "=========== Create Docker Secrets ..."
 
-# Create the secrets
+# Create docker secrets
 printf $FQDN | sudo docker secret create fqdn -
 printf $SUBSCRIPTION_ID | sudo docker secret create subscription_Id -
 printf $APP_ID | sudo docker secret create app_Id -
 printf $APP_KEY | sudo docker secret create app_Key -
 printf $TENANT_ID | sudo docker secret create tenant_Id -
 printf $GRAFANA_ADMIN | sudo docker secret create grafana_Admin -
+
+# Create nginx secret
+sudo htpasswd -bc /azmon/nginx/.htpasswd admin $GRAFANA_ADMIN
 
 echo "=========== Create network"
 #sudo docker network ls
@@ -133,6 +143,7 @@ sudo docker service create \
      --network="azmon" \
      --mount type=bind,src=/azmon/export,dst=/azmon/export \
      --mount type=bind,src=/azmon/nginx/nginx.conf,dst=/etc/nginx/nginx.conf \
+     --mount type=bind,src=/azmon/nginx/.htpasswd,dst=/etc/nginx/.htpasswd \
      --publish published=8080,target=80 \
      nginx
 
