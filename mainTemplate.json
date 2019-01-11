@@ -14,12 +14,6 @@
         "sshPublicKey": {
             "type": "string"
         },
-        "triggerId": {
-            "type": "int",
-            "minValue": 1,
-            "maxValue": 100,
-            "defaultValue": 1
-        },
         "appId": {
             "type": "string"
         },
@@ -39,6 +33,12 @@
                 "18.04-LTS"
             ],
             "defaultValue": "18.04-LTS"
+        },
+        "triggerId": {
+            "type": "int",
+            "minValue": 1,
+            "maxValue": 100,
+            "defaultValue": 1
         }
     },
     "variables": {
