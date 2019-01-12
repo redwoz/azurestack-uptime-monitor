@@ -18,13 +18,13 @@ function azmon_log_field
   # -1 indicated the job or jobtask is starting, 1 indicates its completed
   FIELD_VALUE=$3
   
-  echo "## Task: azmon_log_field ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
-  
   if [ "$FIELD_VALUE_TYPE" == "N" ]; then 
+    echo "## Task: azmon_log_field N ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
     curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
   fi
 
   if [ "$FIELD_VALUE_TYPE" == "T" ]; then
+    echo "## Task: azmon_log_field T ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
     curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=\"${FIELD_VALUE}\" ${JOB_TIMESTAMP}" | grep HTTP  
   fi
 
