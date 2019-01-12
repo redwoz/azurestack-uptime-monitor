@@ -20,12 +20,11 @@ function azmon_log_field
   
   echo "## Task: azmon_log_field ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
   
-  if [ $FIELD_VALUE_TYPE == "N" ]
-  then 
+  if [ $FIELD_VALUE_TYPE == "N" ]; then 
     curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
   fi
 
-  if [ $FIELD_VALUE_TYPE == "T" ]
+  if [ $FIELD_VALUE_TYPE == "T" ]; then
     curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=\"${FIELD_VALUE}\" ${JOB_TIMESTAMP}" | grep HTTP  
   fi
 
