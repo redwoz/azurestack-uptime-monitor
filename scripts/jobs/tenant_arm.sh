@@ -28,7 +28,7 @@ azmon_login management
 
 echo "## Task: get resources"
 
-$(az resource list) \
+RESOURCES=$(az resource list) \
   && azmon_log_field T status admin_arm_list_resources \
   || azmon_log_field T status admin_arm_list_resources fail
 
