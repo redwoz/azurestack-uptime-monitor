@@ -5,15 +5,15 @@ echo "## Version functions.sh  : $FUNCTIONS_SCRIPT_VERSION"
 
 function azmon_log_field
 {
-  # Field name can be job (indicating the start or the completion of the full job)
-  # can be the name of the task within a job (e.g. auth)
-  # or can be the name of another field to add (e.g. version)
-  FIELD_NAME=$1
-
   # Field type is either N or T.
   # N is used for a number (for creating graphs)
   # T Text needs to be escaped in the Line Protocol
-  FIELD_VALUE_TYPE=$2
+  FIELD_VALUE_TYPE=$1
+
+  # Field name can be job (indicating the start or the completion of the full job)
+  # can be the name of the task within a job (e.g. auth)
+  # or can be the name of another field to add (e.g. version)
+  FIELD_NAME=$2
 
   # -1 indicated the job or jobtask is starting, 1 indicates its completed
   FIELD_VALUE=$3
