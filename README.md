@@ -5,7 +5,7 @@ Azure Stack Monitoring is an open source based solution that test the availabili
 The monitoring solution runs on a single VM deployed to an Azure Stack tenant subscription. Multiple scripts are executed at various intervals to test endpoints and workload availability. Each script is executed in a docker container with Azure CLI installed. The scripts write their output to an Influx time series database. The data in the database in visualized with Grafana. Influx and Grafana are both running in a docker container as well.
 Finally the data from the Influx database is exported to CSV on a weekly basis and made available though a website running inside a Nginx container.
 
-[image diagram]
+[diagram](images/diagram.png)
 
 The solution only runs open source software and does not require any licenses. No data is sent out of the solution. Once it is deployed, the solution does not require any outbound connectivity.
 
