@@ -30,15 +30,9 @@ fi
 CSV_DATE_START=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week" "$CSV_DATE_FORMAT")
 CSV_DATE_END=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week + 7 day - 1 sec" "$CSV_DATE_FORMAT")
 
-# Get all jobs
-CSV_JOBS=$(sudo cat /azmon/common/files.json | jq -r ".jobs[] | .name")
-
-# Escape for InfluxDB Line Protocol and comma seperate the measurements
-CSV_MEASUREMENTS=$(echo $(for i in $CSV_JOBS; do echo '\"'$i'\"'; done) | tr ' ' ',')
-
 # Export data to file
 sudo curl -G 'http://localhost:8086/query?db=azmon' \
-   --data-urlencode "q=SELECT * FROM $CSV_MEASUREMENTS where time >= '$CSV_DATE_START' and time <= '$CSV_DATE_END'" \
+   --data-urlencode "q=SELECT * FROM /.*/ where time >= '$CSV_DATE_START' and time <= '$CSV_DATE_END'" \
    -H "Accept: application/csv" \
    -o /azmon/export/$CSV_FILE_NAME.csv \
  && echo "export completed succesfully" \
