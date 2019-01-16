@@ -63,4 +63,4 @@ Each endpoint requires authentication. The Grafana portal and the web page with 
 
 ## Data and export
 
-The monitoring data is stored in the Influx database. Data from each week is exported to comma seperated (.csv) file. The .csv files can be downloaded from the **Web page with exported CSV files). The database is configured with a retention policy of three months. Any data that is older that three months will be automatically purged from the database. The CSV files will not be deleted.
+The monitoring data is stored in the Influx database. Data from each week is exported to comma seperated (.csv) file. The .csv files can be downloaded from the **Web page with exported CSV files**. The database is configured with a retention policy of three months. Any data that is older that three months will be automatically purged from the database. The CSV files will not be deleted.
