@@ -2,14 +2,14 @@
 
 Azure Stack Monitoring is an open source based solution that test the availability of Azure Stack endpoints and workloads. The solution will start monitoring Azure Stack directly after it is deployed. 
 
-The monitoring solution runs on a single VM deployed to an Azure Stack tenant subscription. Multiple scripts are executed at various intervals to test endpoints and workload availability. Each script is executed in a docker container with Azure CLI installed. The scripts write their output to in Influx time series database. The data in the database in visualized with Grafana. Influx and Grafana are both running in a docker container as well.
+The monitoring solution runs on a single VM deployed to an Azure Stack tenant subscription. Multiple scripts are executed at various intervals to test endpoints and workload availability. Each script is executed in a docker container with Azure CLI installed. The scripts write their output to an Influx time series database. The data in the database in visualized with Grafana. Influx and Grafana are both running in a docker container as well.
 Finally the data from the Influx database is exported to CSV on a weekly basis and made available though a website running inside a Nginx container.
 
 [image diagram]
 
-The solution only runs open source software and does not require any licenses.
+The solution only runs open source software and does not require any licenses. No data is sent out of the solution. Once it is deployed, the solution does not require any outbound connectivity.
 
-No data is sent of the solution. The default Ubuntu 18.04-LTS or 16.04-LTS image available in Azure Stack can be used. It is also possible to pre-provision an Ubuntu image and import it into an diconnected Azure Stack environment. Once it is deployed, the solution does not require any outbound connectivity.
+The default Ubuntu 18.04-LTS or 16.04-LTS image available in Azure Stack can be used. It is also possible to pre-provision an Ubuntu image and import it into an diconnected Azure Stack environment. 
 
 ## Prerequistses
 
