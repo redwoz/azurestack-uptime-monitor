@@ -4,7 +4,7 @@
 echo "=========== Job arguments"
 JOB_NAME=$1
 JOB_SCRIPT=$2
-JOB_TIMESTAMP=$(date --utc +%s%N)
+JOB_TIMESTAMP=$(date --utc +%s)
 
 function azmon_existing_service_remove
 {
@@ -14,7 +14,7 @@ function azmon_existing_service_remove
       || { echo "There is no service with the name ${JOB_NAME}" ; return 0 ; }
 
     # Get the timestamp from the existing serivce 
-    EXISTING_SERVICE_TIMESTAMP=$(sudo docker service inspect $JOB_NAME --format='{{.Spec.Labels.timestamp}}') \
+    EXISTING_SERVICE_TIMESTAMP=$(( $(sudo docker service inspect $JOB_NAME --format='{{.Spec.Labels.timestamp}}')/1000000000)) \
       && echo "Retrieved timestamp from existing service" \
       || echo "Unable to retrieve timestamp from existing service"
 
@@ -25,7 +25,7 @@ function azmon_existing_service_remove
 
     # If existing service task is still running, update record in DB (based on existing TIMESTAMP)
     [[ $TASK_STATUS == Running* ]] \
-      && curl -s -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "${JOB_NAME} status=\"exceeded_max_runtime\",job_runtime=$(( ($JOB_TIMESTAMP-$EXISTING_SERVICE_TIMESTAMP)/60000000000 )) $EXISTING_SERVICE_TIMESTAMP" | grep HTTP \
+      && curl -s -i -XPOST "http://localhost:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} status=\"exceeded_max_runtime\",job_runtime=$(( $JOB_TIMESTAMP-$EXISTING_SERVICE_TIMESTAMP )) $EXISTING_SERVICE_TIMESTAMP" | grep HTTP \
       || echo "Service task has exited"
 
     # Remove the existing service
@@ -56,7 +56,8 @@ sudo docker service create \
      --secret app_Id \
      --secret app_Key \
      --secret tenant_Id \
+     --secret grafana_Admin \
      microsoft/azure-cli \
      $JOB_SCRIPT \
-  && curl -s -i -XPOST "http://localhost:8086/write?db=azmon" --data-binary "${JOB_NAME} job=-1,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
+  && curl -s -i -XPOST "http://localhost:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} job=-1,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"

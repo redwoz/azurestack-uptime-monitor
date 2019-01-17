@@ -20,12 +20,12 @@ function azmon_log_field
   
   if [ "$FIELD_VALUE_TYPE" == "N" ]; then 
     echo "## Task: azmon_log_field N ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
-    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
+    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
   fi
 
   if [ "$FIELD_VALUE_TYPE" == "T" ]; then
     echo "## Task: azmon_log_field T ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
-    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${FIELD_NAME}=\"${FIELD_VALUE}\" ${JOB_TIMESTAMP}" | grep HTTP  
+    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} ${FIELD_NAME}=\"${FIELD_VALUE}\" ${JOB_TIMESTAMP}" | grep HTTP  
   fi
 
   # If there is a fourth argument with the value fail, then exit the container completely
@@ -40,10 +40,10 @@ function azmon_log_runtime
   # can be job (indicating the start or the completion of the full job)
   # can be the name of the task within a job (e.g. auth)
 
-  RUNTIME=$(( $(date --utc +%s) - $(date -d @$(($JOB_TIMESTAMP/1000000000)) +%s) ))
+  RUNTIME=$(( $(date --utc +%s) - $JOB_TIMESTAMP ))
    
   echo "## Task: azmon_log_runtime ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
-  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP 
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP 
 } 
 
 function azmon_login
