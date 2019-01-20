@@ -29,19 +29,19 @@ UPDATE_LOCATIONS_LIST=$(az resource list --resource-type "Microsoft.Update.Admin
 #######################
 ################## EDIT
 #######################
-
+#
 # Get all update locations
-az resource list --resource-type "Microsoft.Update.Admin/updateLocations" | jq -r "."
-
+# az resource list --resource-type "Microsoft.Update.Admin/updateLocations" | jq -r "."
+#
 # Get the ID of the first update location
-UPDATE_LOCATION_RESOURCEID=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations" | jq -r ".[0].id")
-
-az resource show --ids $UPDATE_LOCATION_RESOURCEID
-
+# UPDATE_LOCATION_RESOURCEID=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations" | jq -r ".[0].id")
+#
+# az resource show --ids $UPDATE_LOCATION_RESOURCEID
+#
 # 
-TOKEN=$(az account get-access-token | jq -r ".accessToken")
-curl -sX GET -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" https://adminmanagement.3173r04a.azcatcpec.com/subscriptions/9f2244d0-4ebc-4f7e-ade7-48d0f53c7b0b/resourcegroups/system.3173r04a/providers/Microsoft.Update.Admin/updateLocations/3173r04a/updates?api-version=2016-05-01 | jq -r ".value[0]"
-
+# TOKEN=$(az account get-access-token | jq -r ".accessToken")
+# curl -sX GET -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" https://adminmanagement.REGION.FQDN/subscriptions/9f2244d0-4ebc-4f7e-ade7-48d0f53c7b0b/resourcegroups/system.3173r04a/providers/Microsoft.Update.Admin/updateLocations/3173r04a/updates?api-version=2016-05-01 | jq -r ".value[0]"
+#
 #######################
 ################## EDIT
 #######################
