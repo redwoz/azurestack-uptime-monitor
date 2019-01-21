@@ -84,13 +84,8 @@ RANGE_NEW_BODY=$(cat << END
 END
 )
 
-echo "############################### RANGE_NEW_BODY"
-echo $RANGE_NEW_BODY
-
 # If no results are returned
 if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
-
-  echo "############################### no results are returned"
 
   # Write new annotation to Grafana (no need to update existing one since it doesn't exist yet)
   # Capture the result in a variable for the annotation Id
@@ -125,15 +120,25 @@ else
 END
 )
 
+
+  RANGE_PLUSONE=$(( $RANGE_LAST_ID+1 ))
+  ###################### GET Existing value
+  echo "################## existing grafana value before update"
+  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_LAST_ID)"
+  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_PLUSONE)"
+
   # Update the existing annotation endTime in the Grafana db
   curl -sX PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID
+
+  ###################### GET Existing value
+  echo "################## existing grafana value before update"
+  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_LAST_ID)"
+  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_PLUSONE)"
 
   # Updating the influxDB entry with the new endtime
   curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu time_end=$(($(date --utc +%s)*1000)) $RANGE_LAST_TIMESTAMP" | grep HTTP
   
   if [ "$CURRENT_UPDATE_STATE" != "$RANGE_LAST_STATE" ]; then
-
-    echo "############################### results are returned > Next if > tag mismatch" 
     
     # Create new annotation
     RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id")
