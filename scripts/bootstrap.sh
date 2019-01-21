@@ -145,3 +145,6 @@ sudo docker service create \
 
 echo "=========== Configure cron"
 sudo crontab -u $LINUX_USERNAME /azmon/common/cron_tab.conf
+
+echo "=========== Retention Policy"
+curl -sX POST "http://localhost:8086/query?db=azmon" --data-urlencode "q=CREATE RETENTION POLICY "azmon_90_days" ON "azmon" DURATION 90d REPLICATION 1 SHARD DURATION 7d DEFAULT"
