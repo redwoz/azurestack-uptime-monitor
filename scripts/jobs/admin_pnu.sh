@@ -70,9 +70,6 @@ echo "## Task: annotations"
 
 RANGE_LAST=$(curl -s -G 'http://influxdb:8086/query?db=azmon' --data-urlencode 'q=SELECT * FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1')
 
-echo "############################### RANGE_LAST"
-echo $RANGE_LAST
-
 RANGE_NEW_BODY=$(cat << END
 {
   "time":$(($(date --utc +%s)*1000)),
@@ -97,8 +94,6 @@ if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
 
 else 
 
-  echo "############################### results are returned" 
-
   # Query for last entry in range_pnu measure in Influx
   RANGE_LAST_ENTRY=$(curl -s -G 'http://influxdb:8086/query?db=azmon&epoch=s' --data-urlencode 'q=SELECT range_id, time_start, state, tags, text FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1' | jq -r ".results[].series[].values[]")
   RANGE_LAST_TIMESTAMP=$(echo $RANGE_LAST_ENTRY | jq -r ".[0]")
@@ -120,20 +115,8 @@ else
 END
 )
 
-
-  RANGE_PLUSONE=$(( $RANGE_LAST_ID+1 ))
-  ###################### GET Existing value
-  echo "################## existing grafana value before update"
-  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_LAST_ID)"
-  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_PLUSONE)"
-
   # Update the existing annotation endTime in the Grafana db
   curl -sX PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID
-
-  ###################### GET Existing value
-  echo "################## existing grafana value before update"
-  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_LAST_ID)"
-  curl -s -XGET -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_PLUSONE)"
 
   # Updating the influxDB entry with the new endtime
   curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu time_end=$(($(date --utc +%s)*1000)) $RANGE_LAST_TIMESTAMP" | grep HTTP
