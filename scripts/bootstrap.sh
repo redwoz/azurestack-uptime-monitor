@@ -83,6 +83,7 @@ done
 # change the permissions for all files in /azmon/azurecli 
 sudo chmod -R 755 /azmon/jobs
 sudo chmod -R 755 /azmon/common
+sudo chmod -R 755 /azmon/export
 
 echo "=========== Initialize Docker Swarm ..."
 
