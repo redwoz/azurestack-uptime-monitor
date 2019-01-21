@@ -143,7 +143,7 @@ END
     # Create new annotation
     RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id")
     #RANGE_NEW_REGION_ID=$(curl -sX GET -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_NEW_ID) | .regionId")
-    curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",tags=\"["$CURRENT_UPDATE_STATE"]\",text=\"Current update version is $CURRENT_UPDATE_VERSION\"" | grep HTTP
+    curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",tags=\"$CURRENT_UPDATE_STATE\",text=\"Current update version is $CURRENT_UPDATE_VERSION\"" | grep HTTP
 
   fi  
 fi
