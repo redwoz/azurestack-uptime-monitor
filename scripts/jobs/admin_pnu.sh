@@ -81,24 +81,24 @@ END
 )
 
 # If no results are returned
-if [[ -z $(echo "$RANGE_LAST" | jq -r ".results[].series") ]]; then
+if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
   # Write new annotation to Grafana (no need to update existing one since it doesn't exist yet)
   # Capture the result in a variable for the annotation Id
   RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id")
   # RANGE_NEW_REGION_ID=$(curl -sX GET -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafana_Admin) http://grafana:3000/api/annotations | jq -r ".[] | select(.id==$RANGE_NEW_ID) | .regionId")
 
   # Write new annotation to the Influx (no need to update existing one, since it doesn't exist yet)
-  curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",tags=\"["$CURRENT_UPDATE_STATE"]\",text=\"Current update version is $CURRENT_UPDATE_VERSION\"" | grep HTTP
+  curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",tags=\"$CURRENT_UPDATE_STATE\",text=\"Current update version is $CURRENT_UPDATE_VERSION\"" | grep HTTP
 
 else 
   # Query for last entry in range_pnu measure in Influx
-  RANGE_LAST_ENTRY=$(curl -s -G 'http://influxdb:8086/query?db=azmon&epoch=s' --data-urlencode 'q=SELECT range_id, time_start, state, tags, text FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1' | jq -r ".results[].series[].values[][]")
-  RANGE_LAST_TIMESTAMP=$($RANGE_LAST_ENTRY | jq -r ".[0]")
-  RANGE_LAST_ID=$($RANGE_LAST_ENTRY | jq -r ".[1]")
-  RANGE_LAST_START=$($RANGE_LAST_ENTRY | jq -r ".[2]")
-  RANGE_LAST_STATE=$($RANGE_LAST_ENTRY | jq -r ".[3]")
-  RANGE_LAST_TAGS=$($RANGE_LAST_ENTRY | jq -r ".[4]")
-  RANGE_LAST_TEXT=$($RANGE_LAST_ENTRY | jq -r ".[5]")
+  RANGE_LAST_ENTRY=$(curl -s -G 'http://influxdb:8086/query?db=azmon&epoch=s' --data-urlencode 'q=SELECT range_id, time_start, state, tags, text FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1' | jq -r ".results[].series[].values[]")
+  RANGE_LAST_TIMESTAMP=$(echo $RANGE_LAST_ENTRY | jq -r ".[0]")
+  RANGE_LAST_ID=$(echo $RANGE_LAST_ENTRY | jq -r ".[1]")
+  RANGE_LAST_START=$(echo $RANGE_LAST_ENTRY | jq -r ".[2]")
+  RANGE_LAST_STATE=$(echo $RANGE_LAST_ENTRY | jq -r ".[3]")
+  RANGE_LAST_TAGS=$(echo $RANGE_LAST_ENTRY | jq -r ".[4]")
+  RANGE_LAST_TEXT=$(echo $RANGE_LAST_ENTRY | jq -r ".[5]")
   
 
   RANGE_UPDATE_BODY=$(cat << END
@@ -106,8 +106,8 @@ else
   "time":$RANGE_LAST_START,
   "isRegion":true,
   "timeEnd":$(($(date --utc +%s)*1000)),
-  "text":$RANGE_LAST_TEXT,
-  "tags":$RANGE_LAST_TAGS
+  "text":"$RANGE_LAST_TEXT",
+  "tags":["$RANGE_LAST_TAGS"]
 }
 END
 )
@@ -116,7 +116,7 @@ END
   curl -sX PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID
 
   # Updating the influxDB entry with the new endtime
-  curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu time_end=\"$(($(date --utc +%s)*1000))\" $RANGE_LAST_TIMESTAMP" | grep HTTP
+  curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu time_end=$(($(date --utc +%s)*1000)) $RANGE_LAST_TIMESTAMP" | grep HTTP
   
   if [ "$CURRENT_UPDATE_STATE" != "$RANGE_LAST_STATE" ]; then
     
