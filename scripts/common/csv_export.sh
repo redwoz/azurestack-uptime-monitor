@@ -9,7 +9,7 @@ echo "## Task: export"
 
 # Variables (Date and number of days use default values if no argument is specified)
 CSV_YEAR=${1:-$(date --utc +%y)}
-CSV_WEEK=${2:-$(date --utc +%U)}
+CSV_WEEK=${2:-$(date --utc -d 'last week' +%U)}
 CSV_FILE_NAME=y${CSV_YEAR}w${CSV_WEEK}
 
 # Date format to export
