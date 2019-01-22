@@ -57,17 +57,21 @@ case "$CURRENT_UPDATE_STATE" in
   "UpdateAvailable")
     # If needed, order by date. Select the oldest one.
     NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="Ready")')
+    NEW_UPDATE_TEXT="and the new version ready to be applied is"
     ;;
   "UpdateInProgress")
     NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="Installing")')
+    NEW_UPDATE_TEXT="and the new version that is installing is"
     ;;
   "AppliedSuccessfully")
     # If needed, order by date. Select the oldest one.
     NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="Installed")')
+    NEW_UPDATE_TEXT="and the version that applied succesfully is"
     ;;
   "UpdateFailed")
     # If needed, order by date. Select the latest one.
     NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="InstallationFailed")')
+    NEW_UPDATE_TEXT="and the version that failed to install is"
     ;;
 esac
 
@@ -93,7 +97,7 @@ RANGE_NEW_BODY=$(cat << END
   "timeEnd":$(($(date --utc +%s)*1000)),
   "isRegion":true,
   "tags":["$CURRENT_UPDATE_STATE","$NEW_UPDATE_VERSION"],
-  "text":"Current update version is $CURRENT_UPDATE_VERSION and the new version is $NEW_UPDATE_DESCRIPTION"
+  "text":"Current update version is $CURRENT_UPDATE_VERSION $NEW_UPDATE_TEXT $NEW_UPDATE_DESCRIPTION"
 }
 END
 )
