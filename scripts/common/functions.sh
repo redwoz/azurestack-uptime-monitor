@@ -49,7 +49,7 @@ function azmon_log_runtime
 function azmon_login
 {
   # Write entry in DB indicating auth is starting
-  azmon_log_field N auth -1
+  azmon_log_field N auth 0
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
   export REQUESTS_CA_BUNDLE=/azmon/common/Certificates.pem \
@@ -79,7 +79,7 @@ function azmon_login
   # Update log with runtime for auth task
   azmon_log_runtime auth
   # Update log with completed auth task 
-  azmon_log_field N auth 1
+  azmon_log_field N auth 100
   
   return 0
 }

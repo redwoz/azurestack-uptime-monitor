@@ -59,5 +59,5 @@ sudo docker service create \
      --secret grafana_Admin \
      microsoft/azure-cli \
      $JOB_SCRIPT \
-  && curl -s -i -XPOST "http://localhost:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} job=-1,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
+  && curl -s -i -XPOST "http://localhost:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"

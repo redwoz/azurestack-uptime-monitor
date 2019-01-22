@@ -171,4 +171,4 @@ fi
 # Update log with runtime for job
 azmon_log_runtime job
 # Update log with completed job 
-azmon_log_field N job 1
+azmon_log_field N job 100
