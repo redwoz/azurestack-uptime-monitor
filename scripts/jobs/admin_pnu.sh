@@ -71,6 +71,9 @@ case "$CURRENT_UPDATE_STATE" in
     ;;
 esac
 
+# Drop resource group name
+NEW_UPDATE_VERSION=${NEW_UPDATE_VERSION#*/}
+
 # Update admin_pnu measurement in InfluxDB
 azmon_log_field T pnu_current_update_version "$CURRENT_UPDATE_VERSION"
 azmon_log_field T pnu_current_update_state "$CURRENT_UPDATE_STATE"
