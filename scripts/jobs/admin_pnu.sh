@@ -129,7 +129,7 @@ else
   RANGE_LAST_STATE=$(echo $RANGE_LAST | jq -r ".[3]")
   RANGE_LAST_CURRENT_VERSION=$(echo $RANGE_LAST | jq -r ".[4]")
   RANGE_LAST_NEW_VERSION=$(echo $RANGE_LAST | jq -r ".[5]")
-  RANGE_LAST_NEW_DESCRIPTION=$(echo $RANGE_LAST | jq -r ".[5]")
+  RANGE_LAST_NEW_DESCRIPTION=$(echo $RANGE_LAST | jq -r ".[6]")
 
   RANGE_UPDATE_BODY=$(cat << END
 {
