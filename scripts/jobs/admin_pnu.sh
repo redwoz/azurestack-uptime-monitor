@@ -127,7 +127,7 @@ else
   "time":$RANGE_LAST_TIME_START,
   "timeEnd":$(($(date --utc +%s)*1000)),
   "isRegion":true,
-  "tags":["$RANGE_LAST_STATE","$RANGE_LAST_STATE","RANGE_LAST_NEW_VERSION"],
+  "tags":["$RANGE_LAST_STATE","$RANGE_LAST_NEW_VERSION"],
   "text":"Current update version is $RANGE_LAST_CURRENT_VERSION and the new version is $RANGE_LAST_NEW_VERSION"
 }
 END

@@ -8,7 +8,7 @@ BASE_URI=https://raw.githubusercontent.com/marcvaneijk/azurestack-monitor/master
 sudo curl ${BASE_URI}/scripts/common/files.json --output /azmon/common/files.json
 
 # Download the all the files from files.json
-FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[] | .path")
+FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[]")
 
 for i in $FILES_ARRAY
 do
