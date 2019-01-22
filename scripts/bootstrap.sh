@@ -4,7 +4,6 @@ echo "============== Set Argument Object ..."
 ARGUMENTS_JSON=$1
 ARGUMENTS_BLOB_ENDPOINT=$2
 
-
 ###################################################
 #######   Requires Internet Connectivity   ########
 ###################################################
