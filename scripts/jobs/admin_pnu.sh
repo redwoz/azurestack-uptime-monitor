@@ -56,28 +56,29 @@ ALL_UPDATES=$(curl -sX GET -H "Authorization: Bearer $TOKEN" -H "Content-Type: a
 case "$CURRENT_UPDATE_STATE" in
   "UpdateAvailable")
     # If needed, order by date. Select the oldest one.
-    NEW_UPDATE_VERSION=$(echo $ALL_UPDATES | jq -r '.value[] | select(.properties.state=="Ready") | .name')
+    NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="Ready")')
     ;;
   "UpdateInProgress")
-    NEW_UPDATE_VERSION=$(echo $ALL_UPDATES | jq -r '.value[] | select(.properties.state=="Installing") | .name')
+    NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="Installing")')
     ;;
   "AppliedSuccessfully")
     # If needed, order by date. Select the oldest one.
-    NEW_UPDATE_VERSION=$(echo $ALL_UPDATES | jq -r '.value[] | select(.properties.state=="Installed") | .name')
+    NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="Installed")')
     ;;
   "UpdateFailed")
     # If needed, order by date. Select the latest one.
-    NEW_UPDATE_VERSION=$(echo $ALL_UPDATES | jq -r '.value[] | select(.properties.state=="InstallationFailed") | .name')
+    NEW_UPDATE=$(echo $ALL_UPDATES | jq '.value[] | select(.properties.state=="InstallationFailed")')
     ;;
 esac
 
-# Drop resource group name
-NEW_UPDATE_VERSION=${NEW_UPDATE_VERSION#*/}
+NEW_UPDATE_VERSION=$(echo $NEW_UPDATE | jq -r ".properties.version")
+NEW_UPDATE_DESCRIPTION=$(echo $NEW_UPDATE | jq -r ".properties.description")
 
 # Update admin_pnu measurement in InfluxDB
 azmon_log_field T pnu_current_update_version "$CURRENT_UPDATE_VERSION"
 azmon_log_field T pnu_current_update_state "$CURRENT_UPDATE_STATE"
 azmon_log_field T pnu_new_update_version "$NEW_UPDATE_VERSION"
+azmon_log_field T pnu_new_update_description "$NEW_UPDATE_DESCRIPTION"
 
 echo "## Task: Create Annotations"
 
@@ -92,7 +93,7 @@ RANGE_NEW_BODY=$(cat << END
   "timeEnd":$(($(date --utc +%s)*1000)),
   "isRegion":true,
   "tags":["$CURRENT_UPDATE_STATE","$NEW_UPDATE_VERSION"],
-  "text":"Current update version is $CURRENT_UPDATE_VERSION and the new version is $NEW_UPDATE_VERSION"
+  "text":"Current update version is $CURRENT_UPDATE_VERSION and the new version is $NEW_UPDATE_DESCRIPTION"
 }
 END
 )
@@ -107,14 +108,14 @@ if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
     || azmon_log_field T status admin_pnu_new_range_grafana fail
 
   # Write new annotation to the Influx (no need to update existing one, since it doesn't exist yet)
-  curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\"" | grep HTTP \
+  curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
     && azmon_log_field T status admin_pnu_new_range_influx \
     || azmon_log_field T status admin_pnu_new_range_influx fail
 
 else 
 
   # Get the latest annotation from range_pnu meansurement in the influxDB, selecting the values from the result
-  RANGE_LAST=$(curl -s -G 'http://influxdb:8086/query?db=azmon&epoch=s' --data-urlencode 'q=SELECT range_id, time_start, state, current_version, new_version FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1' | jq -r ".results[].series[].values[]") \
+  RANGE_LAST=$(curl -s -G 'http://influxdb:8086/query?db=azmon&epoch=s' --data-urlencode 'q=SELECT range_id, time_start, state, current_version, new_version, new_description FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1' | jq -r ".results[].series[].values[]") \
     && azmon_log_field T status admin_pnu_new_range_influx \
     || azmon_log_field T status admin_pnu_new_range_influx fail
 
@@ -124,6 +125,7 @@ else
   RANGE_LAST_STATE=$(echo $RANGE_LAST | jq -r ".[3]")
   RANGE_LAST_CURRENT_VERSION=$(echo $RANGE_LAST | jq -r ".[4]")
   RANGE_LAST_NEW_VERSION=$(echo $RANGE_LAST | jq -r ".[5]")
+  RANGE_LAST_NEW_DESCRIPTION=$(echo $RANGE_LAST | jq -r ".[5]")
 
   RANGE_UPDATE_BODY=$(cat << END
 {
@@ -131,7 +133,7 @@ else
   "timeEnd":$(($(date --utc +%s)*1000)),
   "isRegion":true,
   "tags":["$RANGE_LAST_STATE","$RANGE_LAST_NEW_VERSION"],
-  "text":"Current update version is $RANGE_LAST_CURRENT_VERSION and the new version is $RANGE_LAST_NEW_VERSION"
+  "text":"Current update version is $RANGE_LAST_CURRENT_VERSION and the new version is $RANGE_LAST_NEW_DESCRIPTION"
 }
 END
 )
@@ -155,7 +157,7 @@ END
       || azmon_log_field T status admin_pnu_new_state_grafana fail
 
     # Write new annotation to the Influx
-    curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\"" | grep HTTP \
+    curl -s -i -XPOST "http:/influxdb:8086/write?db=azmon&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
       && azmon_log_field T status admin_pnu_new_state_influx \
       || azmon_log_field T status admin_pnu_new_state_influx fail
 
