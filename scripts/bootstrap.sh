@@ -233,6 +233,18 @@ sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf \
   && echo "## Pass: created crontab for $LINUX_USERNAME" \
   || { echo "## Fail: failed to create crontab for $LINUX_USERNAME" ; exit 1 ; }
 
+# Wait for InfluxDB http api to respond
+X=15
+while [ $X -ge 1 ]
+do
+  curl -s "http://localhost:8086/ping"
+  if [ $? = 0 ]; then break; fi
+  echo "Waiting for influxdb http api to respond. $X seconds"
+  sleep 1s
+  X=$(( $X - 1 ))
+  if [ $X = 0 ]; then { echo "## Fail: influxdb http api not responding" ; exit 1 ; } fi
+done
+
 # InfluxDB retention policy
 curl -sX POST "http://localhost:8086/query?db=azs" --data-urlencode "q=CREATE RETENTION POLICY "azs_90days" ON "azs" DURATION 90d REPLICATION 1 SHARD DURATION 7d DEFAULT" \
   && echo "## Pass: set retention policy to 90 days" \
