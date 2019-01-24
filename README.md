@@ -1,8 +1,8 @@
-# AzureStack Monitoring
+# AzureStack Uptime
 
-Azure Stack Monitoring is an open source based solution that test the availability of Azure Stack endpoints and workloads. The solution will start monitoring Azure Stack directly after it is deployed. 
+Azure Stack Uptime is an open source based solution that test the availability of Azure Stack endpoints and workloads. The solution will start testing Azure Stack endpoints directly after it is deployed. 
 
-The monitoring solution runs on a single VM deployed to an Azure Stack tenant subscription. Multiple scripts are executed at various intervals with cron to test endpoints and workload availability. Each script is executed in a docker container with Azure CLI installed. The scripts write their output to an Influx time series database. The data in the database in visualized with Grafana. Influx and Grafana are both running in a docker container as well.
+The solution runs on a single VM deployed to an Azure Stack tenant subscription. Multiple scripts are executed at various intervals with cron to test endpoints and workload availability. Each script is executed in a docker container with Azure CLI installed. The scripts write their output to an Influx time series database. The data in the database in visualized with Grafana. Influx and Grafana are both running in a docker container as well.
 Finally the data from the Influx database is exported to CSV on a weekly basis and made available though a website running inside a Nginx container.
 
 ![diagram](images/diagram.png)
@@ -13,19 +13,19 @@ The default Ubuntu 18.04-LTS or 16.04-LTS image available in Azure Stack can be 
 
 ## Prerequistses
 
-The Azure Stack monitoring solution has the following prerequisites.
+The solution has the following prerequisites.
 
 - Ubuntu image (18.04-LTS or 16.04-LTS). You can use the images available in the Azure marketplace feed in Azure Stack marketplace management, or if you have a disconnected environment, provision an Ubuntu image yourself [see link for the steps]
 - An SPN created in the Identity Provider (AAD or ADFS). The authentication method for the SPN account must be with a key (certificate based authentication is not supported). The SPN must have ```reader``` permissions on the default provider subscription and ```contributor``` permissions on a tenant subscription [see link for the steps].
 - The linux vm extension v2.0 needs to be available in the Azure Stack enviroment. It can be either installed through Marketplace Management or imported with the [offline tool] for disconnected environments.
-- A tenant user in the same tenant as the SPN account that has at least ```contributor``` permissions to a resource group that the Azure Stack monitoring solution will be deployed to.
-- An SSH key pair for authenticating to the Azure Stack monitoring solution VM. [see link for the steps]
+- A tenant user in the same tenant as the SPN account that has at least ```contributor``` permissions to a resource group that the solution will be deployed to.
+- An SSH key pair for authenticating to the solution VM. [see link for the steps]
 
 ## Deploy online using an ARM template
 
 This procedure requires outbound connectivity for the VM. On avarage the deployment will take ~14 minutes.
 
-To deploy the Azure Stack Monitoring solution, you can either 
+To deploy the Asolution, you can either 
 
 - select the Template Deployment item from the Azure Stack marketplace, copy the content of the mainTemplate.json of this repository into the template builder, and submit the parameter values
 - or deploy the mainTemplate.json through Azure CLI or PowerShell and submit the parameter values.
@@ -35,7 +35,7 @@ The deployment template requires the following inputs
 - sshPublicKey: the SSH public key is inserted into the Linux VM. Once you authenticate with your private key stored on you local machine signin will be granted. Without the private key on your machine you cannot connect to the VM. With the proper permissions Azure Stack allows you to reset SSH public in the VM (in case you lose you're private key)
 - appId: this is the application Id of the SPN created in the identity store.
 - appKey: this is the key (password) for the SPN created in the identity store.
-- grafanaPassword: this password is used to authenticate to the Grafana monitoring portal, once the deployment is completed.
+- grafanaPassword: this password is used to authenticate to the Grafana portal, once the deployment is completed.
 
 The deployment template also provides the following optional inputs:
 - ubuntuSku: if a value for this parameter is not specified, the default value of 18.04-LTS will be used. Alternatively you can specify 16.04-LTS as input value. No other input values are allowed
@@ -51,7 +51,7 @@ The procedure is only intended for disconnected environments that do not have an
 - Import the VHD to a storage account is the tenant subscript
 - Deploy ARM template with using custom VHD as input for managed disk
 
-## Monitoring
+## Access
 
 Once the deployment is complete the solution provides the following endpoints
 
@@ -63,4 +63,4 @@ Each endpoint requires authentication. The Grafana portal and the web page with 
 
 ## Data and export
 
-The monitoring data is stored in the Influx database. Data from each week is exported to comma seperated (.csv) file. The .csv files can be downloaded from the **Web page with exported CSV files**. The database is configured with a retention policy of three months. Any data that is older that three months will be automatically purged from the database. The CSV files will not be deleted.
+The job results are stored in the Influx database. Data from each week is exported to comma seperated (.csv) file. The .csv files can be downloaded from the **Web page with exported CSV files**. The database is configured with a retention policy of three months. Any data that is older than 90 days will be automatically purged from the database. The CSV files will not be deleted.
