@@ -315,7 +315,7 @@
                         "version": "latest"
                     },
                     "osDisk": {
-                        "name": "osdisk",
+                        "name": "[concat(variables('prefix'),'osdisk')]",
                         "createOption": "FromImage",
                         "caching": "ReadWrite"
                     }
