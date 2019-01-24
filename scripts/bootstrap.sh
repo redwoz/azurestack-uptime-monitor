@@ -194,7 +194,7 @@ sudo docker service create \
      --name influxdb \
      --detach \
      --restart-condition any \
-     --network="azs" \
+     --network azs \
      --mount type=bind,src=/azs/influxdb,dst=/var/lib/influxdb \
      --publish published=8086,target=8086 \
      --env INFLUXDB_DB=azs \
@@ -206,7 +206,8 @@ sudo docker service create \
      --name grafana \
      --detach \
      --restart-condition any \
-     --network="azs" \
+     --network azs \
+     --user $(sudo id -u) \
      --mount type=bind,src=/azs/grafana/database,dst=/var/lib/grafana \
      --mount type=bind,src=/azs/grafana/datasources,dst=/etc/grafana/provisioning/datasources \
      --mount type=bind,src=/azs/grafana/dashboards,dst=/etc/grafana/provisioning/dashboards \
@@ -221,7 +222,8 @@ sudo docker service create \
      --name nginx \
      --detach \
      --restart-condition any \
-     --network="azs" \
+     --network azs \
+     --user 
      --mount type=bind,src=/azs/export,dst=/azs/export \
      --mount type=bind,src=/azs/nginx/nginx.conf,dst=/etc/nginx/nginx.conf \
      --mount type=bind,src=/azs/nginx/.htpasswd,dst=/etc/nginx/.htpasswd \
