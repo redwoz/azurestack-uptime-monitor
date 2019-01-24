@@ -5,7 +5,7 @@
     "parameters": {
         "baseUrl": {
             "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/marcvaneijk/azurestack-monitor/master"
+            "defaultValue": "https://raw.githubusercontent.com/marcvaneijk/azurestack-uptime/master"
         },
         "adminUsername": {
             "type": "string",
