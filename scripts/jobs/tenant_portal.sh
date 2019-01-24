@@ -8,20 +8,20 @@ echo "############ Version  : $SCRIPT_VERSION"
 echo "## Task: source functions"
 
 # Source functions.sh
-source /azmon/common/functions.sh \
+source /azs/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
 # Add script version job
-azmon_log_field N script_version $SCRIPT_VERSION
+azs_log_field N script_version $SCRIPT_VERSION
 
 echo "## Task: connect"
 
 openssl s_client -connect portal.$(cat /run/secrets/fqdn):443 -servername portal.$(cat /run/secrets/fqdn) \
-  && azmon_log_field T status admin_portal_openssl_connect \
-  || azmon_log_field T status admin_portal_openssl_connect fail
+  && azs_log_field T status admin_portal_openssl_connect \
+  || azs_log_field T status admin_portal_openssl_connect fail
 
 # Update log with runtime for job
-azmon_log_runtime job
+azs_log_runtime job
 # Update log with completed job 
-azmon_log_field N job 100
+azs_log_field N job 100

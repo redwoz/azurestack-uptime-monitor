@@ -3,7 +3,7 @@ FUNCTIONS_SCRIPT_VERSION=0.1
 
 echo "## Version functions.sh  : $FUNCTIONS_SCRIPT_VERSION"
 
-function azmon_log_field
+function azs_log_field
 {
   # Field type is either N or T.
   # N is used for a number (for creating graphs)
@@ -19,13 +19,13 @@ function azmon_log_field
   FIELD_VALUE=$3
   
   if [ "$FIELD_VALUE_TYPE" == "N" ]; then 
-    echo "## Task: azmon_log_field N ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
-    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
+    echo "## Task: azs_log_field N ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
+    curl -s -i -XPOST "http://influxdb:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} ${FIELD_NAME}=${FIELD_VALUE} ${JOB_TIMESTAMP}" | grep HTTP
   fi
 
   if [ "$FIELD_VALUE_TYPE" == "T" ]; then
-    echo "## Task: azmon_log_field T ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
-    curl -s -i -XPOST "http://influxdb:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} ${FIELD_NAME}=\"${FIELD_VALUE}\" ${JOB_TIMESTAMP}" | grep HTTP  
+    echo "## Task: azs_log_field T ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
+    curl -s -i -XPOST "http://influxdb:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} ${FIELD_NAME}=\"${FIELD_VALUE}\" ${JOB_TIMESTAMP}" | grep HTTP  
   fi
 
   # If there is a fourth argument with the value fail, then exit the container completely
@@ -34,7 +34,7 @@ function azmon_log_field
   fi  
 } 
 
-function azmon_log_runtime
+function azs_log_runtime
 {
   TASK=$1 
   # can be job (indicating the start or the completion of the full job)
@@ -42,44 +42,44 @@ function azmon_log_runtime
 
   RUNTIME=$(( $(date --utc +%s) - $JOB_TIMESTAMP ))
    
-  echo "## Task: azmon_log_runtime ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
-  curl -s -i -XPOST "http://influxdb:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP 
+  echo "## Task: azs_log_runtime ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
+  curl -s -i -XPOST "http://influxdb:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP 
 } 
 
-function azmon_login
+function azs_login
 {
   # Write entry in DB indicating auth is starting
-  azmon_log_field N auth 0
+  azs_log_field N auth 0
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
-  export REQUESTS_CA_BUNDLE=/azmon/common/Certificates.pem \
-    && azmon_log_field T status auth_ca_bundle \
-    || azmon_log_field T status auth_ca_bundle fail
+  export REQUESTS_CA_BUNDLE=/azs/common/Certificates.pem \
+    && azs_log_field T status auth_ca_bundle \
+    || azs_log_field T status auth_ca_bundle fail
 
   ## Register cloud (cloud_register)
   az cloud register -n AzureStackCloud --endpoint-resource-manager "https://$1.$(cat /run/secrets/fqdn)" \
-    && azmon_log_field T status auth_cloud_register \
-    || azmon_log_field T status auth_cloud_register fail
+    && azs_log_field T status auth_cloud_register \
+    || azs_log_field T status auth_cloud_register fail
 
   ## Select cloud
   az cloud set -n AzureStackCloud \
-    && azmon_log_field T status auth_select_cloud \
-    || azmon_log_field T status auth_cloud_register fail
+    && azs_log_field T status auth_select_cloud \
+    || azs_log_field T status auth_cloud_register fail
 
   ## Api Profile
   az cloud update --profile 2018-03-01-hybrid \
-    && azmon_log_field T status auth_set_apiprofile \
-    || azmon_log_field T status auth_set_apiprofile fail
+    && azs_log_field T status auth_set_apiprofile \
+    || azs_log_field T status auth_set_apiprofile fail
 
   ## Sign in as SPN
   az login --service-principal --tenant $TENANT_ID $(cat /run/secrets/tenant_Id) -u $(cat /run/secrets/app_Id) -p $(cat /run/secrets/app_Key) \
-    && azmon_log_field T status auth_login \
-    || azmon_log_field T status auth_login fail
+    && azs_log_field T status auth_login \
+    || azs_log_field T status auth_login fail
   
   # Update log with runtime for auth task
-  azmon_log_runtime auth
+  azs_log_runtime auth
   # Update log with completed auth task 
-  azmon_log_field N auth 100
+  azs_log_field N auth 100
   
   return 0
 }

@@ -42,7 +42,7 @@
         }
     },
     "variables": {
-        "prefix": "azmon",
+        "prefix": "azs",
         "names": {
             "pubIp": "[concat(variables('prefix'),'pubIp')]",
             "pubIpDns": "[toLower(concat(variables('prefix'),'-',uniqueString(resourceGroup().id)))]",

@@ -8,31 +8,31 @@ echo "############ Version  : $SCRIPT_VERSION"
 echo "## Task: source functions"
 
 # Source functions.sh
-source /azmon/common/functions.sh \
+source /azs/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
 # Add script version job
-azmon_log_field N script_version $SCRIPT_VERSION
+azs_log_field N script_version $SCRIPT_VERSION
 
 echo "## Task: connect"
 
 openssl s_client -connect adminmanagement.$(cat /run/secrets/fqdn):443 -servername adminmanagement.$(cat /run/secrets/fqdn)  \
-  && azmon_log_field T status admin_arm_openssl_connect \
-  || azmon_log_field T status admin_arm_openssl_connect fail
+  && azs_log_field T status admin_arm_openssl_connect \
+  || azs_log_field T status admin_arm_openssl_connect fail
 
 echo "## Task: auth"
 
 # Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
-azmon_login adminmanagement
+azs_login adminmanagement
 
 echo "## Task: get resources"
 
 RESOURCES=$(az resource list) \
-  && azmon_log_field T status admin_arm_list_resources \
-  || azmon_log_field T status admin_arm_list_resources fail
+  && azs_log_field T status admin_arm_list_resources \
+  || azs_log_field T status admin_arm_list_resources fail
 
 # Update log with runtime for job
-azmon_log_runtime job
+azs_log_runtime job
 # Update log with completed job 
-azmon_log_field N job 100
+azs_log_field N job 100

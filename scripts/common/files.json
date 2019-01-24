@@ -17,6 +17,7 @@
         "/common/azurecli_run_it.sh"
     ],
     "dashboards": [
+        "/grafana/dashboards/availability.yaml",
         "/grafana/dashboards/availability.json"
     ],
     "datasources": [

@@ -8,25 +8,25 @@ echo "############ Version  : $SCRIPT_VERSION"
 echo "## Task: source functions"
 
 # Source functions.sh
-source /azmon/common/functions.sh \
+source /azs/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
 # Add script version job
-azmon_log_field N script_version $SCRIPT_VERSION
+azs_log_field N script_version $SCRIPT_VERSION
 
 echo "## Task: auth"
 
 # Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
-azmon_login management
+azs_login management
 
 echo "## Task: read storage"
 
 az resource list \
-  && azmon_log_field T status tenant_read_storage \
-  || azmon_log_field T status tenant_read_storage fail
+  && azs_log_field T status tenant_read_storage \
+  || azs_log_field T status tenant_read_storage fail
 
 # Update log with runtime for job
-azmon_log_runtime job
+azs_log_runtime job
 # Update log with completed job 
-azmon_log_field N job 100
+azs_log_field N job 100

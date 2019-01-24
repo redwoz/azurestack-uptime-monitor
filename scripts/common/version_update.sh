@@ -5,20 +5,20 @@ LINUX_USERNAME=azureAdmin
 BASE_URI=https://raw.githubusercontent.com/marcvaneijk/azurestack-monitor/master
 
 # Download files.json (contains a reference to all other files)
-sudo curl ${BASE_URI}/scripts/common/files.json --output /azmon/common/files.json
+sudo curl ${BASE_URI}/scripts/common/files.json --output /azs/common/files.json
 
 # Download the all the files from files.json
-FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[]")
+FILES_ARRAY=$(sudo cat /azs/common/files.json | jq -r ".[] | .[]")
 
 for i in $FILES_ARRAY
 do
-    sudo curl ${BASE_URI}/scripts${i} --output /azmon${i}
+    sudo curl ${BASE_URI}/scripts${i} --output /azs${i}
 done
 
-# change the permissions for all files in /azmon for jobs and common
-sudo chmod -R 755 /azmon/jobs
-sudo chmod -R 755 /azmon/common
+# change the permissions for all files in /azs for jobs and common
+sudo chmod -R 755 /azs/jobs
+sudo chmod -R 755 /azs/common
 
 # Delete existing crontab and create a new one
 sudo crontab -u $LINUX_USERNAME -r
-sudo crontab -u $LINUX_USERNAME /azmon/common/cron_tab.conf
+sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf

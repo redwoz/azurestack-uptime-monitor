@@ -6,7 +6,7 @@ JOB_NAME=$1
 JOB_SCRIPT=$2
 JOB_TIMESTAMP=$(date --utc +%s)
 
-function azmon_existing_service_remove
+function azs_existing_service_remove
 {
     # Is there an existing service?
     sudo docker service inspect $JOB_NAME > /dev/null \
@@ -24,8 +24,8 @@ function azmon_existing_service_remove
       || echo "Unable to retrieve Docker Service task status"
 
     # If existing service task is still running, update record in DB (based on existing TIMESTAMP)
-    [[ $TASK_STATUS == Running* ]] \
-      && curl -s -i -XPOST "http://localhost:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} status=\"exceeded_max_runtime\",job_runtime=$(( $JOB_TIMESTAMP-$EXISTING_SERVICE_TIMESTAMP )) $EXISTING_SERVICE_TIMESTAMP" | grep HTTP \
+    [[ $EXISTING_SERVICE_TASK_STATUS == Running* ]] \
+      && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} status=\"exceeded_max_runtime\",job_runtime=$(( $JOB_TIMESTAMP-$EXISTING_SERVICE_TIMESTAMP )) $EXISTING_SERVICE_TIMESTAMP" | grep HTTP \
       || echo "Service task has exited"
 
     # Remove the existing service
@@ -36,7 +36,7 @@ function azmon_existing_service_remove
     return 0
 }
 
-azmon_existing_service_remove
+azs_existing_service_remove
 # If the function exits with a 1, then the service exists but is not removed.
 # IF [ $? = 1 ] then notify?
 
@@ -46,9 +46,9 @@ sudo docker service create \
      --label timestamp=$JOB_TIMESTAMP \
      --detach \
      --restart-condition none \
-     --network="azmon" \
-     --mount type=bind,src=/azmon/common,dst=/azmon/common \
-     --mount type=bind,src=/azmon/jobs,dst=/azmon/jobs \
+     --network="azs" \
+     --mount type=bind,src=/azs/common,dst=/azs/common \
+     --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
@@ -59,5 +59,5 @@ sudo docker service create \
      --secret grafana_Admin \
      microsoft/azure-cli \
      $JOB_SCRIPT \
-  && curl -s -i -XPOST "http://localhost:8086/write?db=azmon&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
+  && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"

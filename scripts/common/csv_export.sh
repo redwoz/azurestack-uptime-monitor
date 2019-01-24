@@ -31,10 +31,10 @@ CSV_DATE_START=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week" "$CSV_DATE_
 CSV_DATE_END=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week + 7 day - 1 sec" "$CSV_DATE_FORMAT")
 
 # Export data to file
-sudo curl -G 'http://localhost:8086/query?db=azmon' \
+sudo curl -G 'http://localhost:8086/query?db=azs' \
    --data-urlencode "q=SELECT * FROM /.*/ where time >= '$CSV_DATE_START' and time <= '$CSV_DATE_END'" \
    -H "Accept: application/csv" \
-   -o /azmon/export/$CSV_FILE_NAME.csv \
+   -o /azs/export/$CSV_FILE_NAME.csv \
  && echo "export completed succesfully" \
  || echo "export failed"
 

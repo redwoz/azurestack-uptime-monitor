@@ -8,7 +8,7 @@ datasources:
   url: http://influxdb:8086
   password: ""
   user: ""
-  database: azmon
+  database: azs
   basicAuth: false
   isDefault: true
   version: 1

@@ -7,7 +7,6 @@ echo "############ Version  : $SCRIPT_VERSION"
 echo "############ Set Argument Object"
 ARGUMENTS_JSON=$1
 ARGUMENTS_BLOB_ENDPOINT=$2
-PREFIX=azsa
 
 ###################################################
 #######   Requires Internet Connectivity   ########
@@ -109,30 +108,30 @@ LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
 ##################
 echo "############ Files and directories"
 
-sudo mkdir -p /$PREFIX/{jobs,common,influxdb,grafana/{datasources,dashboards},export,nginx} \
+sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{datasources,dashboards},export,nginx} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
-sudo cp /var/lib/waagent/Certificates.pem /$PREFIX/common/Certificates.pem \
+sudo cp /var/lib/waagent/Certificates.pem /azs/common/Certificates.pem \
   && echo "## Pass: copied the waagent cert to the directory common" \
   || { echo "## Fail: failed to copy the waagent cert to the directory common" ; exit 1 ; }
 
-sudo curl -s $BASE_URI/scripts/common/files.json --output /$PREFIX/common/files.json \
+sudo curl -s $BASE_URI/scripts/common/files.json --output /azs/common/files.json \
   && echo "## Pass: downloaded files.json to the directory common" \
   || { echo "## Fail: failed to download files.json to the directory common" ; exit 1 ; }
 
-FILES_ARRAY=$(sudo cat /$PREFIX/common/files.json | jq -r ".[] | .[]") \
+FILES_ARRAY=$(sudo cat /azs/common/files.json | jq -r ".[] | .[]") \
   && echo "## Pass: created array of files from files.json" \
   || { echo "## Fail: failed to create array of files from files.json" ; exit 1 ; }
 
 for i in $FILES_ARRAY
 do
-  sudo curl -s "$BASE_URI"/scripts"$i" --output /"$PREFIX""$i" \
-    && echo "## Pass: downloaded $BASE_URI/scripts$i to /$PREFIX$i" \
-    || { echo "## Fail: failed to download $BASE_URI/scripts$i to /$PREFIX$i" ; exit 1 ; }
+  sudo curl -s "$BASE_URI"/scripts"$i" --output /azs"$i" \
+    && echo "## Pass: downloaded $BASE_URI/scripts$i to /azs$i" \
+    || { echo "## Fail: failed to download $BASE_URI/scripts$i to /azs$i" ; exit 1 ; }
 done
 
-sudo chmod -R 755 /$PREFIX/{jobs,common,export} \
+sudo chmod -R 755 /azs/{jobs,common,export} \
   && echo "## Pass: add execute permissions to files in /jobs /common and /export directories" \
   || { echo "## Fail: failed to add execute permissions to files in /jobs /common and /export directories" ; exit 1 ; }
 
@@ -181,24 +180,24 @@ printf $GRAFANA_ADMIN | sudo docker secret create grafana_Admin - \
   && echo "## Pass: created docker secret grafana_Admin" \
   || { echo "## Fail: failed to create docker secret grafana_Admin" ; exit 1 ; }
 
-sudo htpasswd -bc /$PREFIX/nginx/.htpasswd admin $GRAFANA_ADMIN \
+sudo htpasswd -bc /azs/nginx/.htpasswd admin $GRAFANA_ADMIN \
   && echo "## Pass: created nginx password file" \
   || { echo "## Fail: failed to create nginx password file" ; exit 1 ; }
 
 # Create overlay network
-sudo docker network create --driver overlay $PREFIX \
-  && echo "## Pass: created network overlay $PREFIX" \
-  || echo "## Pass: network overlay $PREFIX already exists"
+sudo docker network create --driver overlay azs \
+  && echo "## Pass: created network overlay azs" \
+  || echo "## Pass: network overlay azs already exists"
 
 # Create docker services
 sudo docker service create \
      --name influxdb \
      --detach \
      --restart-condition any \
-     --network="$PREFIX" \
-     --mount type=bind,src=/$PREFIX/influxdb,dst=/var/lib/influxdb \
+     --network="azs" \
+     --mount type=bind,src=/azs/influxdb,dst=/var/lib/influxdb \
      --publish published=8086,target=8086 \
-     --env INFLUXDB_DB=$PREFIX \
+     --env INFLUXDB_DB=azs \
      influxdb \
   && echo "## Pass: created docker service for influxdb" \
   || { echo "## Fail: failed to create docker service for influxdb" ; exit 1 ; }
@@ -207,8 +206,8 @@ sudo docker service create \
      --name grafana \
      --detach \
      --restart-condition any \
-     --network="$PREFIX" \
-     --mount type=bind,src=/$PREFIX/grafana,dst=/etc/grafana/provisioning \
+     --network="azs" \
+     --mount type=bind,src=/azs/grafana,dst=/etc/grafana/provisioning \
      --publish published=3000,target=3000 \
      --secret grafana_Admin \
      --env GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana_Admin \
@@ -220,21 +219,21 @@ sudo docker service create \
      --name nginx \
      --detach \
      --restart-condition any \
-     --network="$PREFIX" \
-     --mount type=bind,src=/$PREFIX/export,dst=/$PREFIX/export \
-     --mount type=bind,src=/$PREFIX/nginx/nginx.conf,dst=/etc/nginx/nginx.conf \
-     --mount type=bind,src=/$PREFIX/nginx/.htpasswd,dst=/etc/nginx/.htpasswd \
+     --network="azs" \
+     --mount type=bind,src=/azs/export,dst=/azs/export \
+     --mount type=bind,src=/azs/nginx/nginx.conf,dst=/etc/nginx/nginx.conf \
+     --mount type=bind,src=/azs/nginx/.htpasswd,dst=/etc/nginx/.htpasswd \
      --publish published=8080,target=80 \
      nginx \
   && echo "## Pass: created docker service for nginx" \
   || { echo "## Fail: failed to create docker service for nginx" ; exit 1 ; }
 
 # Crontab
-sudo crontab -u $LINUX_USERNAME /$PREFIX/common/cron_tab.conf \
+sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf \
   && echo "## Pass: created crontab for $LINUX_USERNAME" \
   || { echo "## Fail: failed to create crontab for $LINUX_USERNAME" ; exit 1 ; }
 
 # InfluxDB retention policy
-curl -sX POST "http://localhost:8086/query?db=$PREFIX" --data-urlencode "q=CREATE RETENTION POLICY "$PREFIX" ON "$PREFIX" DURATION 90d REPLICATION 1 SHARD DURATION 7d DEFAULT" \
+curl -sX POST "http://localhost:8086/query?db=azs" --data-urlencode "q=CREATE RETENTION POLICY "azs_90days" ON "azs" DURATION 90d REPLICATION 1 SHARD DURATION 7d DEFAULT" \
   && echo "## Pass: set retention policy to 90 days" \
   || { echo "## Fail: failed to set retention policy to 90 days" ; exit 1 ; }
