@@ -1,98 +1,172 @@
 #!/bin/bash
+SCRIPT_VERSION=0.1
 
-echo "============== Set Argument Object ..."
+echo "############ Date     : $(date)"
+echo "############ Version  : $SCRIPT_VERSION"
+
+echo "############ Set Argument Object"
 ARGUMENTS_JSON=$1
 ARGUMENTS_BLOB_ENDPOINT=$2
+PREFIX=azsa
 
 ###################################################
 #######   Requires Internet Connectivity   ########
 ###################################################
 
-echo "============== Installing Prerequisistes ..."
+##################
+echo "############ Installing Prerequisistes"
 
-#update your existing list of packages
-sudo apt-get update
+sudo apt-get update \
+  && echo "## Pass: updated package database" \
+  || echo "## Fail: failed to update package database"
 
-# prerequisite packages
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq apache2-utils
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq apache2-utils \
+  && echo "## Pass: prereq packages installed" \
+  || echo "## Fail: failed to install prereq packages"
 
-# add the GPG key for the official Docker repository
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \
+  && echo "## Pass: added GPG key for Docker repository" \
+  || echo "## Fail: failed to add GPG key for Docker repository"
 
-# Add Docker repository to APT sources:
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+  && echo "## Pass: added Docker repository to APT sources" \
+  || echo "## Fail: failed to add Docker repository to APT sources"
 
-# Update package database with Docker packages from new repo
-sudo apt-get update
+sudo apt-get update \
+  && echo "## Pass: updated package database with Docker packages" \
+  || echo "## Fail: failed to update package database with Docker packages"
 
-# Install Docker
-sudo apt-get install -y docker-ce
-	
-echo "=========== Donwload docker images ..."
+sudo apt-get install -y docker-ce \
+  && echo "## Pass: installed docker-ce" \
+  || echo "## Fail: failed to install docker-ce"
 
-sudo docker pull influxdb
-sudo docker pull grafana/grafana
-sudo docker pull microsoft/azure-cli
-sudo docker pull nginx
+##################
+echo "############ Donwload docker images"	
+
+sudo docker pull influxdb \
+  && echo "## Pass: pulled influxdb image from docker hub" \
+  || echo "## Fail: failed to pull influxdb image from docker hub"
+
+sudo docker pull grafana/grafana \
+  && echo "## Pass: pulled grafana image from docker hub" \
+  || echo "## Fail: failed to pull grafana image from docker hub"
+
+sudo docker pull microsoft/azure-cli \
+  && echo "## Pass: pulled microsoft/azure-cli image from docker hub" \
+  || echo "## Fail: failed to pull microsoft/azure-cli image from docker hub"
+
+sudo docker pull nginx \
+  && echo "## Pass: pulled nginx image from docker hub" \
+  || echo "## Fail: failed to pull nginx image from docker hub"
 
 ####################################################
 ######   No Internet Connectivity Required   #######
 ####################################################
 
-# FQDN Remove storageaccountname. from blob endpoint
-FQDN=${ARGUMENTS_BLOB_ENDPOINT#*.}
-# FQDN Remove blob. from blob endpoint
-FQDN=${FQDN#*.}
-# FQDN Remove trailing backslash from blob endpoint
-FQDN=${FQDN%/*}
+##################
+echo "############ Set variables"
 
-BASE_URI=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl")
-SUBSCRIPTION_ID=$(echo $ARGUMENTS_JSON | jq -r ".subscriptionId")
-APP_ID=$(echo $ARGUMENTS_JSON | jq -r ".appId")
-APP_KEY=$(echo $ARGUMENTS_JSON | jq -r ".appKey")
-TENANT_ID=$(echo $ARGUMENTS_JSON | jq -r ".tenantId")
-GRAFANA_ADMIN=$(echo $ARGUMENTS_JSON | jq -r ".grafanaPassword")
-LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername")
+FQDN=${ARGUMENTS_BLOB_ENDPOINT#*.} \
+  && echo "## Pass: removed storageaccountname. from blob endpoint" \
+  || echo "## Fail: failed to remove storageaccountname. from blob endpoint"
 
-# Create a directory structure for the project
-sudo mkdir /azmon
-sudo mkdir /azmon/jobs
-sudo mkdir /azmon/common
-sudo mkdir /azmon/influxdb
-sudo mkdir /azmon/grafana
-sudo mkdir /azmon/grafana/datasources
-sudo mkdir /azmon/grafana/dashboards
-sudo mkdir /azmon/export
-sudo mkdir /azmon/nginx
+FQDN=${FQDN#*.} \
+  && echo "## Pass: removed blob. from blob endpoint" \
+  || echo "## Fail: failed to remove blob. from blob endpoint"
 
-# Copy the waagent cert to the project folder
-sudo cp /var/lib/waagent/Certificates.pem /azmon/common/Certificates.pem
+FQDN=${FQDN%/*} \
+  && echo "## Pass: removed trailing backslash from blob endpoint" \
+  || echo "## Fail: failed to remove trailing backslash from blob endpoint"
 
-# Download files.json (contains a reference to all other files)
-sudo curl -s ${BASE_URI}/scripts/common/files.json --output /azmon/common/files.json
+BASE_URI=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl") \
+  && echo "## Pass: set variable BASE_URI" \
+  || echo "## Fail: failed to set variable BASE_URI"
 
-# Download the all the files from files.json
-FILES_ARRAY=$(sudo cat /azmon/common/files.json | jq -r ".[] | .[]")
+SUBSCRIPTION_ID=$(echo $ARGUMENTS_JSON | jq -r ".subscriptionId") \
+  && echo "## Pass: set variable SUBSCRIPTION_ID" \
+  || echo "## Fail: failed to set variable SUBSCRIPTION_ID"
+
+APP_ID=$(echo $ARGUMENTS_JSON | jq -r ".appId") \
+  && echo "## Pass: set variable APP_ID" \
+  || echo "## Fail: failed to set variable APP_ID"
+
+APP_KEY=$(echo $ARGUMENTS_JSON | jq -r ".appKey") \
+  && echo "## Pass: set variable APP_KEY" \
+  || echo "## Fail: failed to set variable APP_KEY"
+
+TENANT_ID=$(echo $ARGUMENTS_JSON | jq -r ".tenantId") \
+  && echo "## Pass: set variable TENANT_ID" \
+  || echo "## Fail: failed to set variable TENANT_ID"
+
+GRAFANA_ADMIN=$(echo $ARGUMENTS_JSON | jq -r ".grafanaPassword") \
+  && echo "## Pass: set variable GRAFANA_ADMIN" \
+  || echo "## Fail: failed to set variable GRAFANA_ADMIN"
+
+LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
+  && echo "## Pass: set variable LINUX_USERNAME" \
+  || echo "## Fail: failed to set variable LINUX_USERNAME"
+
+##################
+echo "############ Files and directories"
+
+sudo mkdir -p /$PREFIX/{jobs,common,influxdb,grafana/{datasources,dashboards},export,nginx} \
+  && echo "## Pass: created directory structure" \
+  || echo "## Fail: failed to create directory structure"
+
+sudo cp /var/lib/waagent/Certificates.pem /$PREFIX/common/Certificates.pem \
+  && echo "## Pass: copied the waagent cert to the directory common" \
+  || echo "## Fail: failed to copy the waagent cert to the directory common"
+
+sudo curl -s $BASE_URI/scripts/common/files.json --output /$PREFIX/common/files.json \
+  && echo "## Pass: downloaded files.json to the directory common" \
+  || echo "## Fail: failed to download files.json to the directory common"
+
+FILES_ARRAY=$(sudo cat /$PREFIX/common/files.json | jq -r ".[] | .[]") \
+  && echo "## Pass: created array of files from files.json" \
+  || echo "## Fail: failed to create array of files from files.json"
 
 for i in $FILES_ARRAY
 do
-    sudo curl ${BASE_URI}/scripts${i} --output /azmon${i}
+  sudo curl -s "$BASE_URI"/scripts"$i" --output /"$PREFIX""$i" \
+    && echo "## Pass: downloaded $BASE_URI/scripts$i to /$PREFIX$i" \
+    || echo "## Fail: failed to download $BASE_URI/scripts$i to /$PREFIX$i"
 done
 
-# change the permissions for all files in /azmon/azurecli 
-sudo chmod -R 755 /azmon/jobs
-sudo chmod -R 755 /azmon/common
-sudo chmod -R 755 /azmon/export
+sudo touch /$PREFIX/common/cron_tab_empty.conf \
+  && echo "## Pass: created empty crontab template" \
+  || echo "## Fail: failed to create empty crontab template"
 
-echo "=========== Initialize Docker Swarm ..."
+sudo chmod -R 755 /$PREFIX/{jobs,common,export} \
+  && echo "## Pass: add execute permissions to files in /jobs /common and /export directories" \
+  || echo "## Fail: failed to add execute permissions to files in /jobs /common and /export directories"
 
-# Install Docker Swarm
-sudo docker swarm init
+##################
+echo "############ Configure Docker"
 
-echo "=========== Create Docker Secrets ..."
+sudo docker swarm init \ 
+  && echo "## Pass: initialized Docker Swarm" \
+  || echo "## Fail: failed to initialize Docker Swarm"
 
+sudo crontab -u $LINUX_USERNAME /$PREFIX/common/cron_tab_empty.conf \
+  && echo "## Pass: removed existing crontab for $LINUX_USERNAME" \
+  || echo "## Pass: crontab is not yet configured for $LINUX_USERNAME"
+
+sudo crontab -u $LINUX_USERNAME -r \
+  && echo "## Pass: removed existing crontab for $LINUX_USERNAME" \
+  || echo "## Fail: unable to remove crontab"
+
+DOCKER_SERVICE_EXISTING=sudo docker service ls --format "{{.ID}}" \
+  && echo "## Pass: initialized Docker Swarm" \
+  || echo "## Fail: failed to initialize Docker Swarm"
+
+
+sudo docker service ls > /dev/null \
+  && { sudo docker service rm influxdb ; echo "## Pass: removed existing docker service influxdb" ; } \
+  || echo "## Pass: docker service influxdb does not exists yet" 
+    
 # Create docker secrets
-printf $FQDN | sudo docker secret create fqdn -
+
+printf $FQDN | sudo docker secret create fqdn - 
 printf $SUBSCRIPTION_ID | sudo docker secret create subscription_Id -
 printf $APP_ID | sudo docker secret create app_Id -
 printf $APP_KEY | sudo docker secret create app_Key -
