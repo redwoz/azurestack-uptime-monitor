@@ -43,6 +43,7 @@
     },
     "variables": {
         "prefix": "azs",
+        "vmSize": "Standard_F1s",
         "names": {
             "pubIp": "[concat(variables('prefix'),'pubIp')]",
             "pubIpDns": "[toLower(concat(variables('prefix'),'-',uniqueString(resourceGroup().id)))]",
@@ -305,7 +306,7 @@
                     }
                 },
                 "hardwareProfile": {
-                    "vmSize": "Standard_F1s"
+                    "vmSize": "[variables('vmSize')]"
                 },
                 "storageProfile": {
                     "imageReference": {
