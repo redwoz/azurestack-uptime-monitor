@@ -138,7 +138,7 @@ sudo chmod -R 755 /azs/{jobs,common,export} \
 ##################
 echo "############ Configure Docker"
 
-sudo docker swarm init \ 
+sudo docker swarm init \
   && echo "## Pass: initialized Docker Swarm" \
   || echo "## Pass: Docker Swarm is already initialized"
 
