@@ -108,7 +108,7 @@ LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
 ##################
 echo "############ Files and directories"
 
-sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{datasources,dashboards},export,nginx} \
+sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{database,datasources,dashboards},export,nginx} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
@@ -207,7 +207,9 @@ sudo docker service create \
      --detach \
      --restart-condition any \
      --network="azs" \
-     --mount type=bind,src=/azs/grafana,dst=/etc/grafana/provisioning \
+     --mount type=bind,src=/azs/grafana/database,dst=/var/lib/grafana \
+     --mount type=bind,src=/azs/grafana/datasources,dst=/etc/grafana/provisioning/datasources \
+     --mount type=bind,src=/azs/grafana/dashboards,dst=/etc/grafana/provisioning/dashboards \
      --publish published=3000,target=3000 \
      --secret grafana_Admin \
      --env GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana_Admin \
