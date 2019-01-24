@@ -107,7 +107,7 @@ if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
 
   # Write new annotation to Grafana (no need to update existing one since it doesn't exist yet)
   # Capture the result in a variable for the annotation Id
-  RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
+  RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafanaAdmin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
     && azs_log_field T status admin_pnu_new_range_grafana \
     || azs_log_field T status admin_pnu_new_range_grafana fail
 
@@ -143,7 +143,7 @@ END
 )
 
   # Update the existing annotation endTime in the Grafana db
-  curl -sX PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID \
+  curl -sX PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -u admin:$(cat /run/secrets/grafanaAdmin) -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID \
     && azs_log_field T status admin_pnu_update_range_grafana \
     || azs_log_field T status admin_pnu_update_range_grafana fail
 
@@ -156,7 +156,7 @@ END
   if [ "$CURRENT_UPDATE_STATE" != "$RANGE_LAST_STATE" ]; then
     
     # Create new annotation
-    RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafana_Admin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
+    RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafanaAdmin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
       && azs_log_field T status admin_pnu_new_state_grafana \
       || azs_log_field T status admin_pnu_new_state_grafana fail
 

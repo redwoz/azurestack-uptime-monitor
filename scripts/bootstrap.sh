@@ -105,6 +105,10 @@ LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
   && echo "## Pass: set variable LINUX_USERNAME" \
   || { echo "## Fail: failed to set variable LINUX_USERNAME" ; exit 1 ; }
 
+UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
+  && echo "## Pass: set variable UNIQUE_STRING" \
+  || { echo "## Fail: failed to set variable UNIQUE_STRING" ; exit 1 ; }
+
 ##################
 echo "############ Files and directories"
 
@@ -160,25 +164,29 @@ printf $FQDN | sudo docker secret create fqdn - \
   && echo "## Pass: created docker secret fqdn" \
   || { echo "## Fail: failed to create docker secret fqdn" ; exit 1 ; }
 
-printf $SUBSCRIPTION_ID | sudo docker secret create subscription_Id - \
-  && echo "## Pass: created docker secret subscription_Id" \
-  || { echo "## Fail: failed to create docker secret subscription_Id" ; exit 1 ; }
+printf $SUBSCRIPTION_ID | sudo docker secret create subscriptionId - \
+  && echo "## Pass: created docker secret subscriptionId" \
+  || { echo "## Fail: failed to create docker secret subscriptionId" ; exit 1 ; }
 
-printf $APP_ID | sudo docker secret create app_Id - \
-  && echo "## Pass: created docker secret app_Id" \
-  || { echo "## Fail: failed to create docker secret app_Id" ; exit 1 ; }
+printf $APP_ID | sudo docker secret create appId - \
+  && echo "## Pass: created docker secret appId" \
+  || { echo "## Fail: failed to create docker secret appId" ; exit 1 ; }
 
-printf $APP_KEY | sudo docker secret create app_Key - \
-  && echo "## Pass: created docker secret app_Key" \
-  || { echo "## Fail: failed to create docker secret app_Key" ; exit 1 ; }
+printf $APP_KEY | sudo docker secret create appKey - \
+  && echo "## Pass: created docker secret appKey" \
+  || { echo "## Fail: failed to create docker secret appKey" ; exit 1 ; }
 
-printf $TENANT_ID | sudo docker secret create tenant_Id - \
-  && echo "## Pass: created docker secret tenant_Id" \
-  || { echo "## Fail: failed to create docker secret tenant_Id" ; exit 1 ; }
+printf $TENANT_ID | sudo docker secret create tenantId - \
+  && echo "## Pass: created docker secret tenantId" \
+  || { echo "## Fail: failed to create docker secret tenantId" ; exit 1 ; }
 
-printf $GRAFANA_ADMIN | sudo docker secret create grafana_Admin - \
-  && echo "## Pass: created docker secret grafana_Admin" \
-  || { echo "## Fail: failed to create docker secret grafana_Admin" ; exit 1 ; }
+printf $GRAFANA_ADMIN | sudo docker secret create grafanaAdmin - \
+  && echo "## Pass: created docker secret grafanaAdmin" \
+  || { echo "## Fail: failed to create docker secret grafanaAdmin" ; exit 1 ; }
+
+printf $UNIQUE_STRING | sudo docker secret create uniqueString - \
+  && echo "## Pass: created docker secret uniqueString" \
+  || { echo "## Fail: failed to create docker secret uniqueString" ; exit 1 ; }
 
 sudo htpasswd -bc /azs/nginx/.htpasswd admin $GRAFANA_ADMIN \
   && echo "## Pass: created nginx password file" \
@@ -212,7 +220,7 @@ sudo docker service create \
      --mount type=bind,src=/azs/grafana/datasources,dst=/etc/grafana/provisioning/datasources \
      --mount type=bind,src=/azs/grafana/dashboards,dst=/etc/grafana/provisioning/dashboards \
      --publish published=3000,target=3000 \
-     --secret grafana_Admin \
+     --secret grafanaAdmin \
      --env GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana_Admin \
      grafana/grafana \
   && echo "## Pass: created docker service for grafana" \

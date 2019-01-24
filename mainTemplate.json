@@ -62,7 +62,8 @@
             "appKey": "[parameters('appKey')]",
             "tenantId": "[subscription().tenantId]",
             "grafanaPassword": "[parameters('grafanaPassword')]",
-            "linuxUsername":"[parameters('adminUsername')]"
+            "linuxUsername":"[parameters('adminUsername')]",
+            "uniqueString":"[uniqueString(concat(variables('prefix'),resourceGroup().id))]"
         },
         "singleQuote": "'"
 

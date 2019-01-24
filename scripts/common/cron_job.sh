@@ -52,11 +52,12 @@ sudo docker service create \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
-     --secret subscription_Id \
-     --secret app_Id \
-     --secret app_Key \
-     --secret tenant_Id \
-     --secret grafana_Admin \
+     --secret subscriptionId \
+     --secret appId \
+     --secret appKey \
+     --secret tenantId \
+     --secret grafanaAdmin \
+     --secret uniqueString \
      microsoft/azure-cli \
      $JOB_SCRIPT \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \

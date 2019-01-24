@@ -16,11 +16,12 @@ sudo docker service create \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
-     --secret subscription_Id \
-     --secret app_Id \
-     --secret app_Key \
-     --secret tenant_Id \
-     --secret grafana_Admin \
+     --secret subscriptionId \
+     --secret appId \
+     --secret appKey \
+     --secret tenantId \
+     --secret grafanaAdmin \
+     --secret uniqueString \
      microsoft/azure-cli \
      /bin/bash 
 
