@@ -10,9 +10,9 @@ sudo docker service create \
      --detach \
      -t \
      --restart-condition none \
-     --network="azs" \
-     --mount type=bind,src=/$PREFIX/common,dst=/$PREFIX/common \
-     --mount type=bind,src=/$PREFIX/jobs,dst=/$PREFIX/jobs \
+     --network azs \
+     --mount type=bind,src=/azs/common,dst=/azs/common \
+     --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
