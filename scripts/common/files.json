@@ -1,4 +1,20 @@
 {
+    "common": [
+        "/common/cron_job.sh",
+        "/common/cron_tab.conf",
+        "/common/files.json",
+        "/common/functions.sh",
+        "/common/debug_azurecli.sh",
+        "/common/debug_export.sh",
+        "/common/debug_update.sh"
+    ],
+    "dashboards": [
+        "/grafana/dashboards/availability.yaml",
+        "/grafana/dashboards/availability.json"
+    ],
+    "datasources": [
+        "/grafana/datasources/influxdb.yml"
+    ],
     "jobs": [
         "/jobs/admin_arm.sh",
         "/jobs/admin_portal.sh",
@@ -7,20 +23,5 @@
         "/jobs/tenant_arm.sh",
         "/jobs/tenant_portal.sh",
         "/jobs/tenant_storage.sh"
-    ],
-    "common": [
-        "/common/cron_job.sh",
-        "/common/cron_tab.conf",
-        "/common/files.json",
-        "/common/functions.sh",
-        "/common/version_update.sh",
-        "/common/azurecli_run_it.sh"
-    ],
-    "dashboards": [
-        "/grafana/dashboards/availability.yaml",
-        "/grafana/dashboards/availability.json"
-    ],
-    "datasources": [
-        "/grafana/datasources/influxdb.yml"
     ]
 }

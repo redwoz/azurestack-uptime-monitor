@@ -52,6 +52,7 @@ sudo docker service create \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
+     --secret storageAccount \
      --secret subscriptionId \
      --secret appId \
      --secret appKey \

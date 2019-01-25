@@ -9,8 +9,8 @@ source /azs/common/functions.sh \
 ################################# Task: Export ################################
 azs_task_start export
 
-CSV_YEAR=${1:-$(date --utc +%y)}
-CSV_WEEK=${2:-$(date --utc -d 'last week' +%U)}
+CSV_YEAR=$(date --utc +%y)
+CSV_WEEK=$(date --utc -d 'last week' +%U)
 CSV_FILE_NAME=y${CSV_YEAR}w${CSV_WEEK}
 
 # Date format to export
@@ -32,7 +32,7 @@ CSV_DATE_START=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week" "$CSV_DATE_
 CSV_DATE_END=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week + 7 day - 1 sec" "$CSV_DATE_FORMAT")
 
 # Export data to file
-sudo curl -G 'http://localhost:8086/query?db=azs' \
+sudo curl -G 'http://influxdb:8086/query?db=azs' \
    --data-urlencode "q=SELECT * FROM /.*/ where time >= '$CSV_DATE_START' and time <= '$CSV_DATE_END'" \
    -H "Accept: application/csv" \
    -o /azs/export/$CSV_FILE_NAME.csv \
@@ -50,10 +50,10 @@ azs_login management
 
 azs_task_end auth
 ################################# Task: Upload ################################
-azs_task_start upload
+#azs_task_start upload
 
 
-azs_task_end upload
+#azs_task_end upload
 ############################### Job: Complete #################################
 azs_job_end
 
