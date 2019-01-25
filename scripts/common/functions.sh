@@ -53,7 +53,7 @@ function azs_log_runtime
 function azs_task_start
 {
   # Action = probe, auth, create, read, update or delete
-  local $ACTION=$1
+  local ACTION=$1
   
   echo "## Task start: $JOB_NAME $ACTION"
   # Set the starttime for the task
@@ -66,7 +66,7 @@ function azs_task_start
 function azs_task_end
 {
   # Action = probe, create, read, update or delete
-  local $ACTION=$1
+  local ACTION=$1
 
   echo "## Task end: $JOB_NAME $ACTION"
   # Set the starttime for the task
@@ -78,8 +78,8 @@ function azs_job_end
 {
   echo "## Job complete: $JOB_NAME"
   # Set the starttime for the task
-  azs_log_runtime $ACTION $JOB_TIMESTAMP
-  azs_log_field N $ACTION 100
+  azs_log_runtime job $JOB_TIMESTAMP
+  azs_log_field N job 100
 }
 
 function azs_login

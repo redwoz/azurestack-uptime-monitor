@@ -1,6 +1,6 @@
 ### On the host ###
 
-JOB_NAME=azurecli_debug
+JOB_NAME=debug_azurecli
 JOB_TIMESTAMP=$(date --utc +%s)
 
 # run contain from the host

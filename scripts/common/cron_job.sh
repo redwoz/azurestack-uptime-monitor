@@ -49,6 +49,7 @@ sudo docker service create \
      --network="azs" \
      --mount type=bind,src=/azs/common,dst=/azs/common \
      --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
+     --mount type=bind,src=/azs/export,dst=/azs/export \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \

@@ -9,31 +9,35 @@ source /azs/common/functions.sh \
 ################################# Task: Export ################################
 azs_task_start export
 
+# Get the current year
 CSV_YEAR=$(date --utc +%y)
-CSV_WEEK=$(date --utc -d 'last week' +%U)
+# Get last week and return two digits
+CSV_WEEK=0$(( $(date --utc +%U) - 1 ))
+CSV_WEEK="${CSV_WEEK: -2}"
+# Set filename
 CSV_FILE_NAME=y${CSV_YEAR}w${CSV_WEEK}
 
-# Date format to export
-CSV_DATE_FORMAT="+%Y-%m-%d %H:%M:%S"
-
 # First week of the year
-CSV_WEEK_NUM_OF_JAN_1=$(date -d ${CSV_YEAR}-01-01 +%U)
-CSV_WEEK_DAY_OF_JAN_1=$(date -d ${CSV_YEAR}-01-01 +%u)
+CSV_WEEK_NUM_OF_JAN_1=$(date --utc -d ${CSV_YEAR}-01-01 +%U)
+CSV_WEEK_DAY_OF_JAN_1=$(date --utc -d ${CSV_YEAR}-01-01 +%u)
 
 # Start of the first week of the year
 if ((WEEK_DAY_OF_JAN_1)); then
-    CSV_FIRST_SUNDAY=${CSV_YEAR}-01-01
+    CSV_FIRST_SUNDAY_EPOCH=$(date --utc -d ${CSV_YEAR}-01-01 -D "%y-%m-%d" +%s)
 else
-    CSV_FIRST_SUNDAY=${CSV_YEAR}-01-$((01 + (7 - CSV_WEEK_DAY_OF_JAN_1) ))
+    CSV_FIRST_SUNDAY_EPOCH=$(date --utc -d ${CSV_YEAR}-01-$((01 + (7 - CSV_WEEK_DAY_OF_JAN_1) )) -D "%y-%m-%d" +%s)
 fi
 
-# Get start and end date for the year and weeknumber
-CSV_DATE_START=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week" "$CSV_DATE_FORMAT")
-CSV_DATE_END=$(date -d "$CSV_FIRST_SUNDAY +$((CSV_WEEK - 1)) week + 7 day - 1 sec" "$CSV_DATE_FORMAT")
+# One week of seconds is 60s x 60m x 24h x 7d = 604800s
+# To get the last week in epoch
+# StartTime : Add last weeks number (current week number - 1) multiplied by seconds, to the first day of the year
+CSV_DATE_START=$(( CSV_FIRST_SUNDAY_EPOCH + $(( ( CSV_WEEK - 1 ) * 604800 )) ))
+# Endtime : Add this weeks number (current week number) multiplied by seconds, minus one second, to the first day of the year
+CSV_DATE_END=$(( CSV_FIRST_SUNDAY_EPOCH + $(( ( CSV_WEEK * 604800 ) - 1 )) ))
 
 # Export data to file
-sudo curl -G 'http://influxdb:8086/query?db=azs' \
-   --data-urlencode "q=SELECT * FROM /.*/ where time >= '$CSV_DATE_START' and time <= '$CSV_DATE_END'" \
+curl -G 'http://influxdb:8086/query?db=azs&precision=s' \
+   --data-urlencode "q=SELECT * FROM /.*/ where time >= $CSV_DATE_START and time <= $CSV_DATE_END" \
    -H "Accept: application/csv" \
    -o /azs/export/$CSV_FILE_NAME.csv \
  && echo "export completed succesfully" \
@@ -52,6 +56,10 @@ azs_task_end auth
 ################################# Task: Upload ################################
 #azs_task_start upload
 
+# Create storage account (if exists? with exisisting data?)
+# Create container (if exists? with exisisting data?)
+# Get keys from storage account
+# For each file in /azs/export > upload to container (if exists? with exisisting data?)
 
 #azs_task_end upload
 ############################### Job: Complete #################################
