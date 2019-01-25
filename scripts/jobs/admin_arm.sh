@@ -10,7 +10,7 @@ source /azs/common/functions.sh \
 azs_task_start probe
 
 openssl s_client \
-      -connect adminmanagement.$(cat /run/secrets/fqdn):443 
+      -connect adminmanagement.$(cat /run/secrets/fqdn):443 \
       -servername adminmanagement.$(cat /run/secrets/fqdn) \
   && azs_log_field T status admin_arm_openssl_connect \
   || azs_log_field T status admin_arm_openssl_connect fail
