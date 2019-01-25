@@ -221,7 +221,7 @@ sudo docker service create \
      --mount type=bind,src=/azs/grafana/dashboards,dst=/etc/grafana/provisioning/dashboards \
      --publish published=3000,target=3000 \
      --secret grafanaAdmin \
-     --env GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana_Admin \
+     --env GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafanaAdmin \
      grafana/grafana \
   && echo "## Pass: created docker service for grafana" \
   || { echo "## Fail: failed to create docker service for grafana" ; exit 1 ; }
