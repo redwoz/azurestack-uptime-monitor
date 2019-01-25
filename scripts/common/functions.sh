@@ -1,22 +1,25 @@
 #!/bin/bash
-FUNCTIONS_SCRIPT_VERSION=0.1
+FUNCTIONS_SCRIPT_VERSION=0.2
 
-echo "## Version functions.sh  : $FUNCTIONS_SCRIPT_VERSION"
+echo "############ Date       : $(date)"
+echo "############ Job name   : $JOB_NAME"
+echo "############ Version    : $SCRIPT_VERSION"
+echo "############ Functions  : $FUNCTIONS_SCRIPT_VERSION"
 
 function azs_log_field
 {
   # Field type is either N or T.
   # N is used for a number (for creating graphs)
   # T Text needs to be escaped in the Line Protocol
-  FIELD_VALUE_TYPE=$1
+  local FIELD_VALUE_TYPE=$1
 
   # Field name can be job (indicating the start or the completion of the full job)
   # can be the name of the task within a job (e.g. auth)
   # or can be the name of another field to add (e.g. version)
-  FIELD_NAME=$2
+  local FIELD_NAME=$2
 
   # -1 indicated the job or jobtask is starting, 1 indicates its completed
-  FIELD_VALUE=$3
+  local FIELD_VALUE=$3
   
   if [ "$FIELD_VALUE_TYPE" == "N" ]; then 
     echo "## Task: azs_log_field N ${JOB_NAME} ${FIELD_NAME} ${FIELD_VALUE}"
@@ -36,21 +39,51 @@ function azs_log_field
 
 function azs_log_runtime
 {
-  TASK=$1 
+  local TASK=$1 
   # can be job (indicating the start or the completion of the full job)
   # can be the name of the task within a job (e.g. auth)
+  local STARTTIME=$2
 
-  RUNTIME=$(( $(date --utc +%s) - $JOB_TIMESTAMP ))
+  local RUNTIME=$(( $(date --utc +%s) - $STARTTIME ))
    
   echo "## Task: azs_log_runtime ${JOB_NAME} ${TASK}_runtime ${RUNTIME}"
   curl -s -i -XPOST "http://influxdb:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} ${TASK}_runtime=${RUNTIME} ${JOB_TIMESTAMP}" | grep HTTP 
 } 
 
+function azs_task_start
+{
+  # Action = probe, auth, create, read, update or delete
+  local $ACTION=$1
+  
+  echo "## Task start: $JOB_NAME $ACTION"
+  # Set the starttime for the task
+  START_TIME=$(date --utc +%s)
+
+  # Write entry in DB indicating auth is starting
+  azs_log_field N $ACTION 0
+}
+
+function azs_task_end
+{
+  # Action = probe, create, read, update or delete
+  local $ACTION=$1
+
+  echo "## Task end: $JOB_NAME $ACTION"
+  # Set the starttime for the task
+  azs_log_runtime $ACTION $START_TIME
+  azs_log_field N $ACTION 100
+}
+
+function azs_job_end
+{
+  echo "## Job complete: $JOB_NAME"
+  # Set the starttime for the task
+  azs_log_runtime $ACTION $JOB_TIMESTAMP
+  azs_log_field N $ACTION 100
+}
+
 function azs_login
 {
-  # Write entry in DB indicating auth is starting
-  azs_log_field N auth 0
-
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
   export REQUESTS_CA_BUNDLE=/azs/common/Certificates.pem \
     && azs_log_field T status auth_ca_bundle \
@@ -76,10 +109,9 @@ function azs_login
     && azs_log_field T status auth_login \
     || azs_log_field T status auth_login fail
   
-  # Update log with runtime for auth task
-  azs_log_runtime auth
-  # Update log with completed auth task 
-  azs_log_field N auth 100
-  
   return 0
 }
+
+# Add script versions to influxdb entry
+azs_log_field N script_version $SCRIPT_VERSION
+azs_log_field N functions_version $FUNCTIONS_SCRIPT_VERSION

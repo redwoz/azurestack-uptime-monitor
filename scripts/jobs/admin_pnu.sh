@@ -1,27 +1,23 @@
 #!/bin/bash
-SCRIPT_VERSION=0.1
+SCRIPT_VERSION=0.2
 API_VERSION_UPDATE_ADMIN="2016-05-01"
-
-echo "############ Date     : $(date)"
-echo "############ Job name : $JOB_NAME"
-echo "############ Version  : $SCRIPT_VERSION"
-
-echo "## Task: source functions"
 
 # Source functions.sh
 source /azs/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
-# Add script version job
-azs_log_field T script_version "$SCRIPT_VERSION"
+################################## Task: Auth #################################
+azs_task_start auth
 
-echo "## Task: auth"
-
-# Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
+# Login to Azure Stack cloud 
+# Provide argument "adminmanagement" for authenticating to admin endpoint
+# Provide argument "management" for authenticating to tenant endpoint
 azs_login adminmanagement
 
-echo "## Task: Get Update Status"
+azs_task_end auth
+################################## Task: Read #################################
+azs_task_start read
 
 # Get update location
 UPDATE_LOCATION_ID=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations" | jq -r ".[0].id") \
@@ -168,7 +164,6 @@ END
   fi  
 fi
 
-# Update log with runtime for job
-azs_log_runtime job
-# Update log with completed job 
-azs_log_field N job 100
+azs_task_end read
+############################### Job: Complete #################################
+azs_job_end

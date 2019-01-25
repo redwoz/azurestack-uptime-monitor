@@ -1,32 +1,51 @@
 #!/bin/bash
-SCRIPT_VERSION=0.1
-
-echo "############ Date     : $(date)"
-echo "############ Job name : $JOB_NAME"
-echo "############ Version  : $SCRIPT_VERSION"
-
-echo "## Task: source functions"
+SCRIPT_VERSION=0.2
 
 # Source functions.sh
 source /azs/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
-# Add script version job
-azs_log_field N script_version $SCRIPT_VERSION
+################################## Task: Auth #################################
+azs_task_start auth
 
-echo "## Task: auth"
-
-# Login to cloud ("adminmanagement" for admin endpoint, "management" for tenant endpoint)
+# Login to Azure Stack cloud 
+# Provide argument "adminmanagement" for authenticating to admin endpoint
+# Provide argument "management" for authenticating to tenant endpoint
 azs_login management
 
-echo "## Task: read storage"
+azs_task_end auth
+################################## Task: Read #################################
+azs_task_start read
 
-az resource list \
-  && azs_log_field T status tenant_read_storage \
-  || azs_log_field T status tenant_read_storage fail
+RESOURCES=$(az resource list) \
+  && azs_log_field T status tenant_storage_read \
+  || azs_log_field T status tenant_storage_read fail
 
-# Update log with runtime for job
-azs_log_runtime job
-# Update log with completed job 
-azs_log_field N job 100
+azs_task_end read
+################################# Task: Create ################################
+azs_task_start create
+
+RESOURCES=$(az resource list) \
+  && azs_log_field T status tenant_storage_create \
+  || azs_log_field T status tenant_storage_create fail
+
+azs_task_end create
+################################# Task: Update ################################
+azs_task_start update
+
+RESOURCES=$(az resource list) \
+  && azs_log_field T status tenant_storage_update \
+  || azs_log_field T status tenant_storage_update fail
+
+azs_task_end update
+################################# Task: Delete ################################
+azs_task_start delete
+
+RESOURCES=$(az resource list) \
+  && azs_log_field T status tenant_storage_delete \
+  || azs_log_field T status tenant_storage_delete fail
+
+azs_task_end delete
+############################### Job: Complete #################################
+azs_job_end
