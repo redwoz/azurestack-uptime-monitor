@@ -54,12 +54,30 @@ azs_login management
 
 azs_task_end auth
 ################################# Task: Upload ################################
-#azs_task_start upload
+azs_task_start upload
 
 # Create storage account (if exists? with exisisting data?)
-# Create container (if exists? with exisisting data?)
+# Get Storage Account
+STORAGE_ACCOUNT=$(az storage account list --query "[?name=='$(cat /run/secrets/storageAccount)']")
+
 # Get keys from storage account
+STORAGE_ACCOUNT_KEY=$(az storage account keys list \
+        --account-name $(cat /run/secrets/storageAccount) \
+        --resource-group $(echo $STORAGE_ACCOUNT | jq -r ".[].resourceGroup") \
+        | jq -r ".[0].value")
+
+# Create container (if exists? with exisisting data?)
+az storage container create \
+        --name csv \
+        --account-name $(cat /run/secrets/storageAccount) \
+        --account-key $STORAGE_ACCOUNT_KEY
+
 # For each file in /azs/export > upload to container (if exists? with exisisting data?)
+az storage blob upload-batch \
+        --destination csv \
+        --account-name $(cat /run/secrets/storageAccount) \
+        --account-key $STORAGE_ACCOUNT_KEY \
+        --source /azs/export
 
 #azs_task_end upload
 ############################### Job: Complete #################################

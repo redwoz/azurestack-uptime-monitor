@@ -99,7 +99,12 @@ function azs_login
     && azs_log_field T status auth_select_cloud \
     || azs_log_field T status auth_cloud_register fail
 
-  ## Api Profile
+  ## Set Api Profile
+  az cloud update --suffix-storage-endpoint "$(cat /run/secrets/fqdn)" \
+    && azs_log_field T status auth_set_storage_endpoint \
+    || azs_log_field T status auth_set_storage_endpoint fail
+
+  ## Set Blob Endpoint
   az cloud update --profile 2018-03-01-hybrid \
     && azs_log_field T status auth_set_apiprofile \
     || azs_log_field T status auth_set_apiprofile fail
