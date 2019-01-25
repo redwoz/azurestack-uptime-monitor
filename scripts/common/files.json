@@ -3,6 +3,7 @@
         "/jobs/admin_arm.sh",
         "/jobs/admin_portal.sh",
         "/jobs/admin_pnu.sh",
+        "/jobs/export_csv.sh",
         "/jobs/tenant_arm.sh",
         "/jobs/tenant_portal.sh",
         "/jobs/tenant_storage.sh"
@@ -10,7 +11,6 @@
     "common": [
         "/common/cron_job.sh",
         "/common/cron_tab.conf",
-        "/common/csv_export.sh",
         "/common/files.json",
         "/common/functions.sh",
         "/common/version_update.sh",
@@ -22,8 +22,5 @@
     ],
     "datasources": [
         "/grafana/datasources/influxdb.yml"
-    ],
-    "nginx": [
-        "/nginx/nginx.conf"
     ]
 }

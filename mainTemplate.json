@@ -53,7 +53,7 @@
             "subnet": "[concat(variables('prefix'),'subnet')]",
             "vNic": "[concat(variables('prefix'),'vNic')]",
             "vm": "[concat(variables('prefix'),'vm')]",
-            "storage": "[concat(variables('prefix'),uniqueString(resourceGroup().id))]"
+            "storage": "[concat('export',uniqueString(resourceGroup().id))]"
         },
         "scriptArguments": {
             "baseUrl": "[parameters('baseUrl')]",
@@ -359,10 +359,6 @@
         "grafanaEndpoint":{
             "type": "string",
             "value": "[concat('http://',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('names').pubIp)).IpAddress,':3000')]"
-        },
-        "nginxEndpoint":{
-            "type": "string",
-            "value": "[concat('http://',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('names').pubIp)).IpAddress,':8080')]"
         },
         "sshEndpoint":{
             "type": "string",

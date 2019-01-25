@@ -19,7 +19,7 @@ sudo apt-get update \
   && echo "## Pass: updated package database" \
   || { echo "## Fail: failed to update package database" ; exit 1 ; }
 
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq apache2-utils \
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq \
   && echo "## Pass: prereq packages installed" \
   || { echo "## Fail: failed to install prereq packages" ; exit 1 ; }
 
@@ -54,10 +54,6 @@ sudo docker pull microsoft/azure-cli \
   && echo "## Pass: pulled microsoft/azure-cli image from docker hub" \
   || { echo "## Fail: failed to pull microsoft/azure-cli image from docker hub" ; exit 1 ; }
 
-sudo docker pull nginx \
-  && echo "## Pass: pulled nginx image from docker hub" \
-  || { echo "## Fail: failed to pull nginx image from docker hub" ; exit 1 ; }
-
 ####################################################
 ######   No Internet Connectivity Required   #######
 ####################################################
@@ -76,6 +72,14 @@ FQDN=${FQDN#*.} \
 FQDN=${FQDN%/*} \
   && echo "## Pass: removed trailing backslash from blob endpoint" \
   || { echo "## Fail: failed to remove trailing backslash from blob endpoint" ; exit 1 ; }
+
+STORAGE_ACCOUNT=${ARGUMENTS_BLOB_ENDPOINT%%.*} \
+  && echo "## Pass: removed fqdn/ from blob endpoint" \
+  || { echo "## Fail: failed to remove fqdn/ from blob endpoint" ; exit 1 ; }
+
+STORAGE_ACCOUNT=${STORAGE_ACCOUNT##*/} \
+  && echo "## Pass: retrieved storageaccountname from blob endpoint" \
+  || { echo "## Fail: failed to retrieve storageaccountname from blob endpoint" ; exit 1 ; }
 
 BASE_URI=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl") \
   && echo "## Pass: set variable BASE_URI" \
@@ -112,7 +116,7 @@ UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
 ##################
 echo "############ Files and directories"
 
-sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{database,datasources,dashboards},export,nginx} \
+sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{database,datasources,dashboards},export} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
@@ -164,6 +168,10 @@ printf $FQDN | sudo docker secret create fqdn - \
   && echo "## Pass: created docker secret fqdn" \
   || { echo "## Fail: failed to create docker secret fqdn" ; exit 1 ; }
 
+printf $STORAGE_ACCOUNT | sudo docker secret create storageAccount - \
+  && echo "## Pass: created docker secret storageAccount" \
+  || { echo "## Fail: failed to create docker secret storageAccount" ; exit 1 ; }
+
 printf $SUBSCRIPTION_ID | sudo docker secret create subscriptionId - \
   && echo "## Pass: created docker secret subscriptionId" \
   || { echo "## Fail: failed to create docker secret subscriptionId" ; exit 1 ; }
@@ -187,10 +195,6 @@ printf $GRAFANA_ADMIN | sudo docker secret create grafanaAdmin - \
 printf $UNIQUE_STRING | sudo docker secret create uniqueString - \
   && echo "## Pass: created docker secret uniqueString" \
   || { echo "## Fail: failed to create docker secret uniqueString" ; exit 1 ; }
-
-sudo htpasswd -bc /azs/nginx/.htpasswd admin $GRAFANA_ADMIN \
-  && echo "## Pass: created nginx password file" \
-  || { echo "## Fail: failed to create nginx password file" ; exit 1 ; }
 
 # Create overlay network
 sudo docker network create --driver overlay azs \
@@ -225,19 +229,6 @@ sudo docker service create \
      grafana/grafana \
   && echo "## Pass: created docker service for grafana" \
   || { echo "## Fail: failed to create docker service for grafana" ; exit 1 ; }
-
-sudo docker service create \
-     --name nginx \
-     --detach \
-     --restart-condition any \
-     --network azs \
-     --mount type=bind,src=/azs/export,dst=/azs/export \
-     --mount type=bind,src=/azs/nginx/nginx.conf,dst=/etc/nginx/nginx.conf \
-     --mount type=bind,src=/azs/nginx/.htpasswd,dst=/etc/nginx/.htpasswd \
-     --publish published=8080,target=80 \
-     nginx \
-  && echo "## Pass: created docker service for nginx" \
-  || { echo "## Fail: failed to create docker service for nginx" ; exit 1 ; }
 
 # Crontab
 sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf \

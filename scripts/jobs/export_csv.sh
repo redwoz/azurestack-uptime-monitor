@@ -1,13 +1,14 @@
 #!/bin/bash
-SCRIPT_VERSION=0.1
+SCRIPT_VERSION=0.2
 
-echo "############ Date     : $(date)"
-echo "############ Job name : $JOB_NAME"
-echo "############ Version  : $SCRIPT_VERSION"
+# Source functions.sh
+source /azs/common/functions.sh \
+  && echo "Sourced functions.sh" \
+  || { echo "Failed to source functions.sh" ; exit ; }
 
-echo "## Task: export"
+################################# Task: Export ################################
+azs_task_start export
 
-# Variables (Date and number of days use default values if no argument is specified)
 CSV_YEAR=${1:-$(date --utc +%y)}
 CSV_WEEK=${2:-$(date --utc -d 'last week' +%U)}
 CSV_FILE_NAME=y${CSV_YEAR}w${CSV_WEEK}
@@ -38,4 +39,21 @@ sudo curl -G 'http://localhost:8086/query?db=azs' \
  && echo "export completed succesfully" \
  || echo "export failed"
 
+azs_task_end export
+################################## Task: Auth #################################
+azs_task_start auth
+
+# Login to Azure Stack cloud 
+# Provide argument "adminmanagement" for authenticating to admin endpoint
+# Provide argument "management" for authenticating to tenant endpoint
+azs_login management
+
+azs_task_end auth
+################################# Task: Upload ################################
+azs_task_start upload
+
+
+azs_task_end upload
+############################### Job: Complete #################################
+azs_job_end
 
