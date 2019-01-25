@@ -231,7 +231,6 @@ sudo docker service create \
      --detach \
      --restart-condition any \
      --network azs \
-     --user 
      --mount type=bind,src=/azs/export,dst=/azs/export \
      --mount type=bind,src=/azs/nginx/nginx.conf,dst=/etc/nginx/nginx.conf \
      --mount type=bind,src=/azs/nginx/.htpasswd,dst=/etc/nginx/.htpasswd \
