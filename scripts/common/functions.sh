@@ -105,7 +105,7 @@ function azs_login
     || azs_log_field T status auth_set_apiprofile fail
 
   ## Sign in as SPN
-  az login --service-principal --tenant $TENANT_ID $(cat /run/secrets/tenantId) -u $(cat /run/secrets/appId) -p $(cat /run/secrets/appKey) \
+  az login --service-principal --tenant $(cat /run/secrets/tenantId) -u $(cat /run/secrets/appId) -p $(cat /run/secrets/appKey) \
     && azs_log_field T status auth_login \
     || azs_log_field T status auth_login fail
   
