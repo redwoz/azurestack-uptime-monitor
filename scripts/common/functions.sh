@@ -84,13 +84,15 @@ function azs_job_end
 
 function azs_login
 {
+  local FQDNHOST=$1
+
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
   export REQUESTS_CA_BUNDLE=/azs/common/Certificates.pem \
     && azs_log_field T status auth_ca_bundle \
     || azs_log_field T status auth_ca_bundle fail
 
   ## Register cloud (cloud_register)
-  az cloud register -n AzureStackCloud --endpoint-resource-manager "https://$1.$(cat /run/secrets/fqdn)" \
+  az cloud register -n AzureStackCloud --endpoint-resource-manager "https://$FQDNHOST.$(cat /run/secrets/fqdn)" \
     && azs_log_field T status auth_cloud_register \
     || azs_log_field T status auth_cloud_register fail
 
@@ -113,7 +115,15 @@ function azs_login
   az login --service-principal --tenant $(cat /run/secrets/tenantId) -u $(cat /run/secrets/appId) -p $(cat /run/secrets/appKey) \
     && azs_log_field T status auth_login \
     || azs_log_field T status auth_login fail
-  
+
+  ## If auth endpoint is management, then set subscriptionId for SPN
+  if [ "$FQDNHOST" = "management" ]
+  then
+    az account set --subscription $(cat /run/secrets/subscriptionId) \
+      && azs_log_field T status set_subscriptionid \
+      || azs_log_field T status set_subscriptionid fail
+  fi
+
   return 0
 }
 

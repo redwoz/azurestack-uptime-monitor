@@ -15,7 +15,7 @@ CSV_YEAR=$(date --utc +%y)
 CSV_WEEK=0$(( $(date --utc +%U) - 1 ))
 CSV_WEEK="${CSV_WEEK: -2}"
 # Set filename
-CSV_FILE_NAME=y${CSV_YEAR}w${CSV_WEEK}
+CSV_FILE_NAME=$(cat /run/secrets/subscriptionId)-y${CSV_YEAR}w${CSV_WEEK}
 
 # First week of the year
 CSV_WEEK_NUM_OF_JAN_1=$(date --utc -d ${CSV_YEAR}-01-01 +%U)
@@ -37,11 +37,11 @@ CSV_DATE_END=$(( CSV_FIRST_SUNDAY_EPOCH + $(( ( CSV_WEEK * 604800 ) - 1 )) ))
 
 # Export data to file
 curl -G 'http://influxdb:8086/query?db=azs&precision=s' \
-   --data-urlencode "q=SELECT * FROM /.*/ where time >= $CSV_DATE_START and time <= $CSV_DATE_END" \
-   -H "Accept: application/csv" \
-   -o /azs/export/$CSV_FILE_NAME.csv \
- && echo "export completed succesfully" \
- || echo "export failed"
+      --data-urlencode "q=SELECT * FROM /.*/ where time >= $CSV_DATE_START and time <= $CSV_DATE_END" \
+      -H "Accept: application/csv" \
+      -o /azs/export/$CSV_FILE_NAME.csv \
+  && azs_log_field T status export_csv_to_file \
+  || azs_log_field T status export_csv_to_file fail
 
 azs_task_end export
 ################################## Task: Auth #################################
@@ -58,26 +58,35 @@ azs_task_start upload
 
 # Create storage account (if exists? with exisisting data?)
 # Get Storage Account
-STORAGE_ACCOUNT=$(az storage account list --query "[?name=='$(cat /run/secrets/storageAccount)']")
+STORAGE_ACCOUNT=$(az storage account list \
+        --query "[?name=='$(cat /run/secrets/storageAccount)']") \
+  && azs_log_field T status get_storage_account \
+  || azs_log_field T status get_storage_account fail
 
 # Get keys from storage account
 STORAGE_ACCOUNT_KEY=$(az storage account keys list \
         --account-name $(cat /run/secrets/storageAccount) \
         --resource-group $(echo $STORAGE_ACCOUNT | jq -r ".[].resourceGroup") \
-        | jq -r ".[0].value")
+        | jq -r ".[0].value") \
+  && azs_log_field T status get_storage_account_key \
+  || azs_log_field T status get_storage_account_key fail
 
 # Create container (if exists? with exisisting data?)
 az storage container create \
         --name csv \
         --account-name $(cat /run/secrets/storageAccount) \
-        --account-key $STORAGE_ACCOUNT_KEY
+        --account-key $STORAGE_ACCOUNT_KEY \
+  && azs_log_field T status create_storage_container \
+  || azs_log_field T status create_storage_container fail
 
 # For each file in /azs/export > upload to container (if exists? with exisisting data?)
 az storage blob upload-batch \
         --destination csv \
         --account-name $(cat /run/secrets/storageAccount) \
         --account-key $STORAGE_ACCOUNT_KEY \
-        --source /azs/export
+        --source /azs/export \
+  && azs_log_field T status upload_files_to_blob \
+  || azs_log_field T status upload_files_to_blob fail
 
 #azs_task_end upload
 ############################### Job: Complete #################################
