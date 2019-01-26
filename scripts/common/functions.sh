@@ -127,6 +127,7 @@ function azs_login
   return 0
 }
 
-# Add script versions to influxdb entry
+# Update entry in the influxdb
+azs_log_field T subscriptionid $(cat /run/secrets/subscriptionId)
 azs_log_field N script_version $SCRIPT_VERSION
 azs_log_field N functions_version $FUNCTIONS_SCRIPT_VERSION
