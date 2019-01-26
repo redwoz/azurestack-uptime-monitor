@@ -1,9 +1,9 @@
 # AzureStack Uptime
 
-Azure Stack Uptime is an open source based solution that test the availability of Azure Stack endpoints and workloads. The solution will start testing Azure Stack endpoints directly after it is deployed. 
+Azure Stack Uptime is an open source based solution that tests the availability of Azure Stack endpoints and workloads. The solution will start testing Azure Stack endpoints directly after it is deployed. 
 
 The solution runs on a single VM deployed to an Azure Stack tenant subscription. Multiple scripts are executed at various intervals with cron to test endpoints and workload availability. Each script is executed in a docker container with Azure CLI installed. The scripts write their output to an Influx time series database. The data in the database in visualized with Grafana. Influx and Grafana are both running in a docker container as well.
-Finally the data from the Influx database is exported to CSV on a weekly basis and made available though a website running inside a Nginx container.
+The data from the Influx database is exported to CSV containing the data from the previous week. The CSV is exported daily and stored in the export storage account.
 
 ![diagram](images/diagram.png)
 
@@ -25,7 +25,7 @@ The solution has the following prerequisites.
 
 This procedure requires outbound connectivity for the VM. On avarage the deployment will take ~14 minutes.
 
-To deploy the Asolution, you can either 
+To deploy the solution, you can either 
 
 - select the Template Deployment item from the Azure Stack marketplace, copy the content of the mainTemplate.json of this repository into the template builder, and submit the parameter values
 - or deploy the mainTemplate.json through Azure CLI or PowerShell and submit the parameter values.
@@ -39,7 +39,7 @@ The deployment template requires the following inputs
 
 The deployment template also provides the following optional inputs:
 - ubuntuSku: if a value for this parameter is not specified, the default value of 18.04-LTS will be used. Alternatively you can specify 16.04-LTS as input value. No other input values are allowed
-- triggerdId: This value is only relevant if the template is deployed more than once to the same resource group with existing resources from an earlier deployment with the same template. If the environment is deployed for the first time, the Linux VM extension is triggered automatically. On subsequent deployments to the same resource group with the existing resources, the Linux VM extension is not executed by default. By specifying a different value for the triggerId the Linux VM extension executes again (as long as the triggerId has a different value than the previous deployment). The default value of the triggerId is 1. It excepts any value between 1 and 100
+- triggerdId: This value is only relevant for updating the solution. The solution is updating by deploying the same to the same resource group with existing resources from an earlier deployment. If the environment is deployed for the first time, the Linux VM extension is triggered automatically. On subsequent deployments to the same resource group with the existing resources, the Linux VM extension is not executed by default. By specifying a different value for the triggerId the Linux VM extension executes again (as long as the triggerId has a different value than the previous deployment). The default value of the triggerId is 1. It excepts any value between 1 and 100.
 
 ## Deployment for disconnected environment
 
@@ -56,11 +56,6 @@ The procedure is only intended for disconnected environments that do not have an
 Once the deployment is complete the solution provides the following endpoints
 
 - **Grafana portal** on **https://[loadbalancer-public-ip-address]:3000**
-- **Web page with exported CSV files** on **https://[loadbalancer-public-ip-address]:8080**
 - **SSH to the VM** with **ssh [adminUserName]@[loadbalancer-public-ip-address]**
 
-Each endpoint requires authentication. The Grafana portal and the web page with exported CSV files can be accessed with username **admin** and the password specified for the **grafanaPassword** parameter. Connecting with SSH to the VM requires the the client to have the private key of the SSH key pair (matching the public key specified for the sshPublicKey parameter during deployment) imported into the terminal client.
-
-## Data and export
-
-The job results are stored in the Influx database. Data from each week is exported to comma seperated (.csv) file. The .csv files can be downloaded from the **Web page with exported CSV files**. The database is configured with a retention policy of three months. Any data that is older than 90 days will be automatically purged from the database. The CSV files will not be deleted.
+Each endpoint requires authentication. The Grafana portal can be accessed with username **admin** and the password specified for the **grafanaPassword** parameter. Connecting with SSH to the VM requires the the client to have the private key of the SSH key pair (matching the public key specified for the sshPublicKey parameter during deployment) imported into the terminal client.
