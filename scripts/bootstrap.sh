@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_VERSION=0.1
+SCRIPT_VERSION=0.3
 
 echo "############ Date     : $(date)"
 echo "############ Version  : $SCRIPT_VERSION"

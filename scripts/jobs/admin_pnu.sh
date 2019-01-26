@@ -1,11 +1,13 @@
 #!/bin/bash
-SCRIPT_VERSION=0.2
-API_VERSION_UPDATE_ADMIN="2016-05-01"
+SCRIPT_VERSION=0.3
 
 # Source functions.sh
 source /azs/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
+
+# Set variables
+API_VERSION_UPDATE_ADMIN="2016-05-01"
 
 ################################## Task: Auth #################################
 azs_task_start auth
@@ -20,7 +22,9 @@ azs_task_end auth
 azs_task_start read
 
 # Get update location
-UPDATE_LOCATION_ID=$(az resource list --resource-type "Microsoft.Update.Admin/updateLocations" | jq -r ".[0].id") \
+UPDATE_LOCATION_ID=$(az resource list \
+      --resource-type "Microsoft.Update.Admin/updateLocations" \
+      | jq -r ".[0].id") \
   && azs_log_field T status admin_pnu_update_location_id \
   || azs_log_field T status admin_pnu_update_location_id fail
 
@@ -30,12 +34,14 @@ UPDATE_LOCATION_STATUS=$(az resource show --ids $UPDATE_LOCATION_ID) \
   || azs_log_field T status admin_pnu_update_location_status fail
 
 # Get current update version
-CURRENT_UPDATE_VERSION=$(echo $UPDATE_LOCATION_STATUS | jq -r ".properties.currentVersion") \
+CURRENT_UPDATE_VERSION=$(echo $UPDATE_LOCATION_STATUS \
+      | jq -r ".properties.currentVersion") \
   && azs_log_field N status admin_pnu_current_version \
   || azs_log_field N status admin_pnu_current_version fail
 
 # Get current update status
-CURRENT_UPDATE_STATE=$(echo $UPDATE_LOCATION_STATUS | jq -r ".properties.state") \
+CURRENT_UPDATE_STATE=$(echo $UPDATE_LOCATION_STATUS \
+      | jq -r ".properties.state") \
   && azs_log_field T status admin_pnu_current_state \
   || azs_log_field T status admin_pnu_current_version fail
 
@@ -44,7 +50,10 @@ TOKEN=$(az account get-access-token | jq -r ".accessToken") \
   && azs_log_field T status admin_pnu_get_token \
   || azs_log_field T status admin_pnu_get_token fail
 
-ALL_UPDATES=$(curl -sX GET -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" https://adminmanagement.$(cat /run/secrets/fqdn)"$UPDATE_LOCATION_ID"/updates?api-version="$API_VERSION_UPDATE_ADMIN") \
+ALL_UPDATES=$(curl -sX GET \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        https://adminmanagement.$(cat /run/secrets/fqdn)"$UPDATE_LOCATION_ID"/updates?api-version="$API_VERSION_UPDATE_ADMIN") \
   && azs_log_field T status admin_pnu_get_updates \
   || azs_log_field T status admin_pnu_get_updates fail
 
@@ -82,8 +91,10 @@ azs_log_field T pnu_new_update_description "$NEW_UPDATE_DESCRIPTION"
 
 echo "## Task: Create Annotations"
 
-# Get the latest annotation from range_pnu meansurement in the influxDB, to validate if it exists
-RANGE_LAST=$(curl -s -G 'http://influxdb:8086/query?db=azs' --data-urlencode 'q=SELECT * FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1') \
+# Get the latest annotation from range_pnu meansurement in the influxDB
+# to validate if it exists
+RANGE_LAST=$(curl -s -G 'http://influxdb:8086/query?db=azs' \
+      --data-urlencode 'q=SELECT * FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1') \
   && azs_log_field T status admin_pnu_get_last_from_influx \
   || azs_log_field T status admin_pnu_get_last_from_influx fail
 
@@ -103,19 +114,25 @@ if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
 
   # Write new annotation to Grafana (no need to update existing one since it doesn't exist yet)
   # Capture the result in a variable for the annotation Id
-  RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafanaAdmin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
+  RANGE_NEW_ID=$(curl -sX POST \
+        -H "Accept: application/json" \
+        -H "Content-Type: application/json" \
+        -u admin:$(cat /run/secrets/grafanaAdmin) \
+        -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
     && azs_log_field T status admin_pnu_new_range_grafana \
     || azs_log_field T status admin_pnu_new_range_grafana fail
 
   # Write new annotation to the Influx (no need to update existing one, since it doesn't exist yet)
-  curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
+  curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" \
+        --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
     && azs_log_field T status admin_pnu_new_range_influx \
     || azs_log_field T status admin_pnu_new_range_influx fail
 
 else 
 
   # Get the latest annotation from range_pnu meansurement in the influxDB, selecting the values from the result
-  RANGE_LAST=$(curl -s -G 'http://influxdb:8086/query?db=azs&epoch=s' --data-urlencode 'q=SELECT range_id, time_start, state, current_version, new_version, new_description FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1' | jq -r ".results[].series[].values[]") \
+  RANGE_LAST=$(curl -s -G 'http://influxdb:8086/query?db=azs&epoch=s' \
+        --data-urlencode 'q=SELECT range_id, time_start, state, current_version, new_version, new_description FROM "range_pnu" GROUP BY * ORDER BY DESC LIMIT 1' | jq -r ".results[].series[].values[]") \
     && azs_log_field T status admin_pnu_new_range_influx \
     || azs_log_field T status admin_pnu_new_range_influx fail
 
@@ -139,12 +156,16 @@ END
 )
 
   # Update the existing annotation endTime in the Grafana db
-  curl -sX PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -u admin:$(cat /run/secrets/grafanaAdmin) -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID \
+  curl -sX PUT -H 'Content-Type: application/json' \
+        -H 'Accept: application/json' \
+        -u admin:$(cat /run/secrets/grafanaAdmin) \
+        -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID \
     && azs_log_field T status admin_pnu_update_range_grafana \
     || azs_log_field T status admin_pnu_update_range_grafana fail
 
   # Updating the influxDB entry with the new endtime
-  curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" --data-binary "range_pnu time_end=$(($(date --utc +%s)*1000)) $RANGE_LAST_TIMESTAMP" | grep HTTP \
+  curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" \
+        --data-binary "range_pnu time_end=$(($(date --utc +%s)*1000)) $RANGE_LAST_TIMESTAMP" | grep HTTP \
     && azs_log_field T status admin_pnu_update_range_influx \
     || azs_log_field T status admin_pnu_update_range_influx fail
   
@@ -152,12 +173,16 @@ END
   if [ "$CURRENT_UPDATE_STATE" != "$RANGE_LAST_STATE" ]; then
     
     # Create new annotation
-    RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" -H "Content-Type: application/json" -u admin:$(cat /run/secrets/grafanaAdmin) -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
+    RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" \
+          -H "Content-Type: application/json" \
+          -u admin:$(cat /run/secrets/grafanaAdmin) \
+          -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
       && azs_log_field T status admin_pnu_new_state_grafana \
       || azs_log_field T status admin_pnu_new_state_grafana fail
 
     # Write new annotation to the Influx
-    curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
+    curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" \
+          --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
       && azs_log_field T status admin_pnu_new_state_influx \
       || azs_log_field T status admin_pnu_new_state_influx fail
 

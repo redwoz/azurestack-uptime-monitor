@@ -1,5 +1,5 @@
 #!/bin/bash
-#SCRIPT_VERSION=0.1
+#SCRIPT_VERSION=0.3
 
 CSV_YEAR=${1:-$(date --utc +%y)}
 CSV_WEEK=${2:-$(date --utc -d 'last week' +%U)}

@@ -1,5 +1,7 @@
-### On the host ###
+#!/bin/bash
+#SCRIPT_VERSION=0.3
 
+### On the host ###
 JOB_NAME=debug_azurecli
 JOB_TIMESTAMP=$(date --utc +%s)
 
@@ -29,11 +31,3 @@ sudo docker service create \
 
 # Exec to the VM
 sudo docker exec -it $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") /bin/bash
-
-### In the container ###
-
-# Source the functions
-source /azs/common/functions.sh
-
-# Login (management or adminmanagement)
-azs_login adminmanagement
