@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_VERSION=0.3
+SCRIPT_VERSION=0.31
 
 # Source functions.sh
 source /azs/common/functions.sh \
@@ -124,7 +124,7 @@ if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
 
   # Write new annotation to the Influx (no need to update existing one, since it doesn't exist yet)
   curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" \
-        --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
+        --data-binary "range_pnu subscriptionId=\"$(cat /run/secrets/subscriptionId)\",range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
     && azs_log_field T status admin_pnu_new_range_influx \
     || azs_log_field T status admin_pnu_new_range_influx fail
 
@@ -182,7 +182,7 @@ END
 
     # Write new annotation to the Influx
     curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" \
-          --data-binary "range_pnu range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
+          --data-binary "range_pnu subscriptionId=\"$(cat /run/secrets/subscriptionId)\",range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
       && azs_log_field T status admin_pnu_new_state_influx \
       || azs_log_field T status admin_pnu_new_state_influx fail
 
