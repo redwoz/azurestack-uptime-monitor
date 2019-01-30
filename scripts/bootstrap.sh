@@ -266,6 +266,18 @@ sudo docker service create \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"
 
+# Wait for container to start
+Y=15
+while [ $Y -ge 1 ]
+do
+  CONTAINERID=$(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}")
+  if [ $CONTAINERID != 0 ]; then break; fi
+  echo "Waiting for container to start. $X seconds"
+  sleep 1s
+  Y=$(( $Y - 1 ))
+  if [ $Y = 0 ]; then { echo "## Fail: admin_bridge container did not start" ; exit 1 ; }; fi
+done
+
 # Wait for one time service to exit and delete it.
 sudo docker wait $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") \
   && echo "## Pass: waited for docker service admin_bridge" \
