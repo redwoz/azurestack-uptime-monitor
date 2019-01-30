@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_VERSION=0.4s
+SCRIPT_VERSION=0.4
 
 # Source functions.sh
 source /azs/common/functions.sh \
