@@ -1,5 +1,5 @@
 #!/bin/bash
-FUNCTIONS_SCRIPT_VERSION=0.3
+FUNCTIONS_SCRIPT_VERSION=0.4
 
 echo "############ Date       : $(date)"
 echo "############ Job name   : $JOB_NAME"
@@ -116,18 +116,18 @@ function azs_login
     && azs_log_field T status auth_login \
     || azs_log_field T status auth_login fail
 
-  ## If auth endpoint is management, then set subscriptionId for SPN
+  ## If auth endpoint is management, then set tenantSubscriptionId for SPN
   if [ "$FQDNHOST" = "management" ]
   then
-    az account set --subscription $(cat /run/secrets/subscriptionId) \
-      && azs_log_field T status set_subscriptionid \
-      || azs_log_field T status set_subscriptionid fail
+    az account set --subscription $(cat /run/secrets/tenantSubscriptionId) \
+      && azs_log_field T status set_tenantsubscriptionid \
+      || azs_log_field T status set_tenantsubscriptionid fail
   fi
 
   return 0
 }
 
 # Update entry in the influxdb
-azs_log_field T subscriptionid $(cat /run/secrets/subscriptionId)
+azs_log_field T subscriptionid $(cat /run/secrets/azureSubscriptionId)
 azs_log_field N script_version $SCRIPT_VERSION
 azs_log_field N functions_version $FUNCTIONS_SCRIPT_VERSION

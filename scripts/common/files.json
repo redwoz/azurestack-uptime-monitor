@@ -18,6 +18,7 @@
     "jobs": [
         "/jobs/admin_arm.sh",
         "/jobs/admin_portal.sh",
+        "/jobs/admin_bridge.sh",
         "/jobs/admin_pnu.sh",
         "/jobs/export_csv.sh",
         "/jobs/tenant_arm.sh",

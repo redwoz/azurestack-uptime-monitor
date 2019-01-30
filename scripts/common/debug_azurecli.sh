@@ -1,5 +1,5 @@
 #!/bin/bash
-#SCRIPT_VERSION=0.3
+#SCRIPT_VERSION=0.4
 
 ### On the host ###
 JOB_NAME=debug_azurecli
@@ -20,7 +20,8 @@ sudo docker service create \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
      --secret storageAccount \
-     --secret subscriptionId \
+     --secret tenantSubscriptionId \
+     --secret azureSubscriptionId \
      --secret appId \
      --secret appKey \
      --secret tenantId \

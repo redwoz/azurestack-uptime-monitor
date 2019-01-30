@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_VERSION=0.3
+SCRIPT_VERSION=0.4
 
 echo "############ Date     : $(date)"
 echo "############ Version  : $SCRIPT_VERSION"
@@ -116,7 +116,7 @@ UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
 ##################
 echo "############ Files and directories"
 
-sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{database,datasources,dashboards},export} \
+sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{database,datasources,dashboards},export,bridge} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
@@ -149,7 +149,7 @@ echo "############ Configure Docker"
 sudo docker swarm init \
   && echo "## Pass: initialized Docker Swarm" \
   || echo "## Pass: Docker Swarm is already initialized"
-
+  
 # Remove existing services
 sudo crontab -u $LINUX_USERNAME -r \
   && echo "## Pass: removed existing crontab for $LINUX_USERNAME" \
@@ -172,9 +172,9 @@ printf $STORAGE_ACCOUNT | sudo docker secret create storageAccount - \
   && echo "## Pass: created docker secret storageAccount" \
   || { echo "## Fail: failed to create docker secret storageAccount" ; exit 1 ; }
 
-printf $SUBSCRIPTION_ID | sudo docker secret create subscriptionId - \
-  && echo "## Pass: created docker secret subscriptionId" \
-  || { echo "## Fail: failed to create docker secret subscriptionId" ; exit 1 ; }
+printf $SUBSCRIPTION_ID | sudo docker secret create tenantSubscriptionId - \
+  && echo "## Pass: created docker secret tenantSubscriptionId" \
+  || { echo "## Fail: failed to create docker secret tenantSubscriptionId" ; exit 1 ; }
 
 printf $APP_ID | sudo docker secret create appId - \
   && echo "## Pass: created docker secret appId" \
@@ -230,11 +230,6 @@ sudo docker service create \
   && echo "## Pass: created docker service for grafana" \
   || { echo "## Fail: failed to create docker service for grafana" ; exit 1 ; }
 
-# Crontab
-sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf \
-  && echo "## Pass: created crontab for $LINUX_USERNAME" \
-  || { echo "## Fail: failed to create crontab for $LINUX_USERNAME" ; exit 1 ; }
-
 # Wait for InfluxDB http api to respond
 X=15
 while [ $X -ge 1 ]
@@ -244,8 +239,62 @@ do
   echo "Waiting for influxdb http api to respond. $X seconds"
   sleep 1s
   X=$(( $X - 1 ))
-  if [ $X = 0 ]; then { echo "## Fail: influxdb http api not responding" ; exit 1 ; } fi
+  if [ $X = 0 ]; then { echo "## Fail: influxdb http api not responding" ; exit 1 ; }; fi
 done
+
+# Create one time service to get Azure subscription from the registration
+JOB_NAME=admin_bridge
+JOB_TIMESTAMP=$(date --utc +%s)
+
+sudo docker service create \
+     --name $JOB_NAME \
+     --label timestamp=$JOB_TIMESTAMP \
+     --detach \
+     --restart-condition none \
+     --network="azs" \
+     --mount type=bind,src=/azs/common,dst=/azs/common \
+     --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
+     --mount type=bind,src=/azs/bridge,dst=/azs/bridge \
+     --env JOB_NAME=admin_registration \
+     --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
+     --secret fqdn \
+     --secret appId \
+     --secret appKey \
+     --secret tenantId \
+     microsoft/azure-cli \
+     /azs/jobs/admin_bridge.sh \
+  && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
+  || echo "Unable to create docker service"
+
+# Wait for one time service to exit and delete it.
+sudo docker wait $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") \
+  && echo "## Pass: waited for docker service admin_bridge" \
+  || { echo "## Fail: failed to wait for docker service admin_bridge" ; exit 1 ; }
+
+# Remove docker service admin_bridge
+sudo docker service rm $JOB_NAME \
+  && echo "## Pass: removed docker service admin_bridge" \
+  || { echo "## Fail: failed to remove docker service admin_bridge" ; exit 1 ; }
+
+# Get subscription from local mount
+AZURE_SUBSCRIPTION_ID=$(cat /azs/bridge/subscriptionid) \
+  && echo "## Pass: retrieved azure subscriptionid from /azs/bridge/subscriptionid" \
+  || { echo "## Fail: unable to retrieve azure subscriptionid from /azs/bridge/subscriptionid" ; exit 1 ; }
+
+# Create secret with bridge subscriptionid
+printf $AZURE_SUBSCRIPTION_ID | sudo docker secret create azureSubscriptionId - \
+  && echo "## Pass: created docker secret azureSubscriptionId" \
+  || { echo "## Fail: failed to create docker secret azureSubscriptionId" ; exit 1 ; }
+
+# Remove folder and content
+sudo rm -r /azs/bridge \
+  && echo "## Pass: removed /azs/bridge" \
+  || { echo "## Fail: unable to remove /azs/bridge" ; exit 1 ; }
+
+# Crontab
+sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf \
+  && echo "## Pass: created crontab for $LINUX_USERNAME" \
+  || { echo "## Fail: failed to create crontab for $LINUX_USERNAME" ; exit 1 ; }
 
 # InfluxDB retention policy
 curl -sX POST "http://localhost:8086/query?db=azs" --data-urlencode "q=CREATE RETENTION POLICY "azs_90days" ON "azs" DURATION 90d REPLICATION 1 SHARD DURATION 7d DEFAULT" \
