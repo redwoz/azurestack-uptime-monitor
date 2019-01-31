@@ -1,6 +1,6 @@
-# AzureStack Uptime
+# AzureStack Uptime Monitor
 
-Azure Stack Uptime is an open source based solution that tests the availability of Azure Stack endpoints and workloads. The solution will start testing Azure Stack endpoints directly after it is deployed. 
+Azure Stack Uptime Monitor is an open source based solution that tests the availability of Azure Stack endpoints and workloads. The solution will start testing Azure Stack endpoints directly after it is deployed. 
 
 The solution runs on a single VM deployed to an Azure Stack tenant subscription. Multiple scripts are executed at various intervals with cron to test endpoints and workload availability. Each script is executed in a docker container with Azure CLI installed. The scripts write their output to an Influx time series database. The data in the database in visualized with Grafana. Influx and Grafana are both running in a docker container as well.
 The data from the Influx database is exported to CSV containing the data from the previous week. The CSV is exported daily and stored in the export storage account.
