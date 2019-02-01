@@ -57,7 +57,7 @@ To connect from a client machine to the Azure Stack Uptime Monitor VM with SSH, 
     ssh-add /home/youruser/.ssh/id_rsa
     
     # Windows
-    ssh-add "C:\Users\youruser\.ssh\id_rsa"
+    ssh-add "/c/Users/youruser/.ssh/id_rsa"
     ```
 
 * Connect to the public IP address of the Azure Stack Uptime Monitor Load Balancer
