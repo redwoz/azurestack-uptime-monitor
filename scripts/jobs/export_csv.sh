@@ -12,7 +12,7 @@ azs_task_start export
 # Get the current year
 CSV_YEAR=$(date --utc +%y)
 # Get last week and return two digits
-CSV_WEEK=0$(( $(date --utc +%U) - 1 ))
+CSV_WEEK=0$(( $(date --utc +%V) - 1 ))
 CSV_WEEK="${CSV_WEEK: -2}"
 # Set filename
 CSV_FILE_NAME=$(cat /run/secrets/azureSubscriptionId)-y${CSV_YEAR}w${CSV_WEEK}
