@@ -78,7 +78,8 @@ function azs_job_end
 {
   echo "## Job complete: $JOB_NAME"
   # Set the starttime for the task
-  azs_log_runtime job $JOB_TIMESTAMP
+  azs_log_runtime job
+  azs_log_field T status job_complete 
   azs_log_field N job 100
 }
 
