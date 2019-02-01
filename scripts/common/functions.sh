@@ -69,7 +69,7 @@ function azs_task_end
   local ACTION=$1
 
   echo "## Task end: $JOB_NAME $ACTION"
-  # Set the starttime for the task
+  # Set the runtime for the task
   azs_log_runtime $ACTION $START_TIME
   azs_log_field N $ACTION 100
 }
@@ -77,8 +77,8 @@ function azs_task_end
 function azs_job_end
 {
   echo "## Job complete: $JOB_NAME"
-  # Set the starttime for the task
-  azs_log_runtime job
+  # Set the runtime for the job
+  azs_log_runtime job $JOB_TIMESTAMP
   azs_log_field T status job_complete 
   azs_log_field N job 100
 }
