@@ -12,9 +12,12 @@ azs_task_start export
 # To specify a specific to export run ./export_csv.sh year week
 # E.g. /export_csv.sh 2019 5
 # If no argumetns are passed the script exports last weeks data
-YEAR=${$1:-$(date --utc +%G)}
-WEEK=${$2:-$(( $(date --utc +%V) - 1 ))}
+YEAR=${1:-$(date --utc +%G)}
+WEEK=${2:-$(( $(date --utc +%V) - 1 ))}
 ONE_DAY_IN_SEC=86400
+
+echo $YEAR
+echo $WEEK
 
 # Base Epoch date for year and week in seconds 
 EPOCH_BASE_IN_SEC=$((  \
@@ -39,7 +42,7 @@ EPOCH_END_IN_SEC=$(( \
 # Set filename
 WEEK_FMT=0$WEEK
 WEEK_FMT="${WEEK_FMT: -2}"
-CSV_FILE_NAME=$(cat /run/secrets/azureSubscriptionId)-y${YEAR}w${WEEK}
+CSV_FILE_NAME=$(cat /run/secrets/azureSubscriptionId)-y${YEAR}w${WEEK_FMT}
 
 # Export data to file
 curl -G 'http://influxdb:8086/query?db=azs' \
