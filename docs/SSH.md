@@ -25,12 +25,12 @@ The procedure for creating the keypair is identical for Linux and Windows (with 
     ```
 * You will be prompted for a location to store the keys.
 
-    ``` shell
+    ```
     Enter file in which to save the key (/home/youruser/.ssh/id_rsa):
     ```
 * You will be prompted to specify a passphrase
 
-    ``` shell
+    ```
     Enter passphrase (empty for no passphrase):
     ```
     This passphrase is used to load the private key when connecting with SSH.
