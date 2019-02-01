@@ -30,10 +30,10 @@ fi
 
 # One week of seconds is 60s x 60m x 24h x 7d = 604800s
 # To get the last week in epoch
-# StartTime : Add last weeks number (current week number - 1) multiplied by seconds, to the first day of the year
-CSV_DATE_START=$(( CSV_FIRST_SUNDAY_EPOCH + $(( ( CSV_WEEK - 1 ) * 604800 )) ))
-# Endtime : Add this weeks number (current week number) multiplied by seconds, minus one second, to the first day of the year
-CSV_DATE_END=$(( CSV_FIRST_SUNDAY_EPOCH + $(( ( CSV_WEEK * 604800 ) - 1 )) ))
+# StartTime : Add  weeks number (default value = last week) multiplied by seconds, to the first day of the year
+CSV_DATE_START=$(( CSV_FIRST_SUNDAY_EPOCH + $(( CSV_WEEK * 604800 )) ))
+# Endtime : Add the weeks number (current week number) multiplied by seconds, minus one second, to the first day of the year
+CSV_DATE_END=$(( CSV_FIRST_SUNDAY_EPOCH + $(( (( CSV_WEEK + 1 ) * 604800 ) - 1 )) ))
 
 # Export data to file
 curl -G 'http://influxdb:8086/query?db=azs&precision=s' \
