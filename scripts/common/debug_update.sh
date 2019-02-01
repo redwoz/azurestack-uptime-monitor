@@ -2,7 +2,7 @@
 #SCRIPT_VERSION=0.3
 
 LINUX_USERNAME=azureAdmin
-BASE_URI=https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master/
+BASE_URI=https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master
 
 # Download files.json (contains a reference to all other files)
 sudo curl ${BASE_URI}/scripts/common/files.json --output /azs/common/files.json
