@@ -15,7 +15,7 @@ CSV_YEAR=$(date --utc +%y)
 CSV_WEEK=0$(( $(date --utc +%U) - 1 ))
 CSV_WEEK="${CSV_WEEK: -2}"
 # Set filename
-CSV_FILE_NAME=$(cat /run/secrets/subscriptionId)-y${CSV_YEAR}w${CSV_WEEK}
+CSV_FILE_NAME=$(cat /run/secrets/azureSubscriptionId)-y${CSV_YEAR}w${CSV_WEEK}
 
 # First week of the year
 CSV_WEEK_NUM_OF_JAN_1=$(date --utc -d ${CSV_YEAR}-01-01 +%U)
