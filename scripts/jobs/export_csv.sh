@@ -9,35 +9,41 @@ source /azs/common/functions.sh \
 ################################# Task: Export ################################
 azs_task_start export
 
-# Get the current year
-CSV_YEAR=$(date --utc +%y)
-# Get last week and return two digits
-CSV_WEEK=0$(( $(date --utc +%V) - 1 ))
-CSV_WEEK="${CSV_WEEK: -2}"
+# To specify a specific to export run ./export_csv.sh year week
+# E.g. /export_csv.sh 2019 5
+# If no argumetns are passed the script exports last weeks data
+YEAR=${$1:-$(date --utc +%G)}
+WEEK=${$2:-$(( $(date --utc +%V) - 1 ))}
+ONE_DAY_IN_SEC=86400
+
+# Base Epoch date for year and week in seconds 
+EPOCH_BASE_IN_SEC=$((  \
+    $(date --utc -d "$YEAR-01-01" +%s) \
+    + $(( \
+        (( $WEEK * 7 + 1 - $(date -d "$YEAR-01-04" +%w ) - 3 )) \
+        * $ONE_DAY_IN_SEC \
+    )) \
+    - $(( 2 * $ONE_DAY_IN_SEC )) \
+))
+
+# Add one day to base for start
+EPOCH_START_IN_SEC=$(( \
+    $EPOCH_BASE_IN_SEC + $(( 1 * $ONE_DAY_IN_SEC )) \
+))
+
+# Add 8 days minus 1 sec for end 
+EPOCH_END_IN_SEC=$(( \
+    $EPOCH_BASE_IN_SEC + $(( 8 * $ONE_DAY_IN_SEC )) - 1 \
+))
+
 # Set filename
-CSV_FILE_NAME=$(cat /run/secrets/azureSubscriptionId)-y${CSV_YEAR}w${CSV_WEEK}
-
-# First week of the year
-CSV_WEEK_NUM_OF_JAN_1=$(date --utc -d ${CSV_YEAR}-01-01 +%U)
-CSV_WEEK_DAY_OF_JAN_1=$(date --utc -d ${CSV_YEAR}-01-01 +%u)
-
-# Start of the first week of the year
-if ((WEEK_DAY_OF_JAN_1)); then
-    CSV_FIRST_SUNDAY_EPOCH=$(date --utc -d ${CSV_YEAR}-01-01 -D "%y-%m-%d" +%s)
-else
-    CSV_FIRST_SUNDAY_EPOCH=$(date --utc -d ${CSV_YEAR}-01-$((01 + (7 - CSV_WEEK_DAY_OF_JAN_1) )) -D "%y-%m-%d" +%s)
-fi
-
-# One week of seconds is 60s x 60m x 24h x 7d = 604800s
-# To get the last week in epoch
-# StartTime : Add  weeks number (default value = last week) multiplied by seconds, to the first day of the year
-CSV_DATE_START=$(( CSV_FIRST_SUNDAY_EPOCH + $(( CSV_WEEK * 604800 )) ))
-# Endtime : Add the weeks number (current week number) multiplied by seconds, minus one second, to the first day of the year
-CSV_DATE_END=$(( CSV_FIRST_SUNDAY_EPOCH + $(( (( CSV_WEEK + 1 ) * 604800 ) - 1 )) ))
+WEEK_FMT=0$WEEK
+WEEK_FMT="${WEEK_FMT: -2}"
+CSV_FILE_NAME=$(cat /run/secrets/azureSubscriptionId)-y${YEAR}w${WEEK}
 
 # Export data to file
-curl -G 'http://influxdb:8086/query?db=azs&precision=s' \
-      --data-urlencode "q=SELECT * FROM /.*/ where time >= $CSV_DATE_START and time <= $CSV_DATE_END" \
+curl -G 'http://influxdb:8086/query?db=azs' \
+      --data-urlencode "q=SELECT * FROM /.*/ where time >= ${EPOCH_START_IN_SEC}s and time <= ${EPOCH_END_IN_SEC}s" \
       -H "Accept: application/csv" \
       -o /azs/export/$CSV_FILE_NAME.csv \
   && azs_log_field T status export_csv_to_file \
