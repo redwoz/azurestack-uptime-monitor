@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_VERSION=0.3
+SCRIPT_VERSION=0.4
 
 # Source functions.sh
 source /azs/common/functions.sh \
@@ -16,9 +16,6 @@ YEAR=${1:-$(date --utc +%G)}
 WEEK=${2:-$(( $(date --utc +%V) - 1 ))}
 ONE_DAY_IN_SEC=86400
 
-echo $YEAR
-echo $WEEK
-
 # Base Epoch date for year and week in seconds 
 EPOCH_BASE_IN_SEC=$((  \
     $(date --utc -d "$YEAR-01-01" +%s) \
@@ -27,17 +24,23 @@ EPOCH_BASE_IN_SEC=$((  \
         * $ONE_DAY_IN_SEC \
     )) \
     - $(( 2 * $ONE_DAY_IN_SEC )) \
-))
+)) \
+  && azs_log_field T status export_csv_epoch_base \
+  || azs_log_field T status export_csv_epoch_base fail
 
 # Add one day to base for start
 EPOCH_START_IN_SEC=$(( \
     $EPOCH_BASE_IN_SEC + $(( 1 * $ONE_DAY_IN_SEC )) \
-))
+)) \
+  && azs_log_field T status export_csv_epoch_start \
+  || azs_log_field T status export_csv_epoch_start fail
 
 # Add 8 days minus 1 sec for end 
 EPOCH_END_IN_SEC=$(( \
     $EPOCH_BASE_IN_SEC + $(( 8 * $ONE_DAY_IN_SEC )) - 1 \
-))
+)) \
+  && azs_log_field T status export_csv_epoch_end \
+  || azs_log_field T status export_csv_epoch_end fail
 
 # Set filename
 WEEK_FMT=0$WEEK
