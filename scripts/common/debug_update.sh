@@ -1,5 +1,5 @@
 #!/bin/bash
-#SCRIPT_VERSION=0.3
+#SCRIPT_VERSION=0.5
 
 LINUX_USERNAME=azureAdmin
 BASE_URI=https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master

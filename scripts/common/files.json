@@ -2,10 +2,10 @@
     "common": [
         "/common/cron_job.sh",
         "/common/cron_tab.conf",
-        "/common/files.json",
-        "/common/functions.sh",
         "/common/debug_azurecli.sh",
-        "/common/debug_update.sh"
+        "/common/debug_update.sh",
+        "/common/files.json",
+        "/common/functions.sh"
     ],
     "dashboards": [
         "/grafana/dashboards/availability.yaml",
@@ -16,10 +16,11 @@
     ],
     "jobs": [
         "/jobs/admin_arm.sh",
-        "/jobs/admin_portal.sh",
-        "/jobs/admin_bridge.sh",
         "/jobs/admin_pnu.sh",
-        "/jobs/export_csv.sh",
+        "/jobs/admin_portal.sh",
+        "/jobs/srv_azure_bridge.sh",
+        "/jobs/srv_export_csv.sh",
+        "/jobs/srv_upload_blob.sh",
         "/jobs/tenant_arm.sh",
         "/jobs/tenant_portal.sh",
         "/jobs/tenant_storage.sh"

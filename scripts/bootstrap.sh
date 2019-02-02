@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_VERSION=0.4
+SCRIPT_VERSION=0.5
 
 echo "############ Date     : $(date)"
 echo "############ Version  : $SCRIPT_VERSION"
@@ -116,7 +116,7 @@ UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
 ##################
 echo "############ Files and directories"
 
-sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{database,datasources,dashboards},export,bridge} \
+sudo mkdir -p /azs/{jobs,common,influxdb,grafana/{database,datasources,dashboards},export,log,bridge} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
@@ -243,7 +243,7 @@ do
 done
 
 # Create one time service to get Azure subscription from the registration
-JOB_NAME=admin_bridge
+JOB_NAME=srv_azure_bridge
 JOB_TIMESTAMP=$(date --utc +%s)
 
 sudo docker service create \
@@ -262,7 +262,7 @@ sudo docker service create \
      --secret appKey \
      --secret tenantId \
      microsoft/azure-cli \
-     /azs/jobs/admin_bridge.sh \
+     /azs/jobs/srv_azure_bridge.sh \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"
 
@@ -275,18 +275,18 @@ do
   echo "Waiting for container to start. $X seconds"
   sleep 1s
   Y=$(( $Y - 1 ))
-  if [ $Y = 0 ]; then { echo "## Fail: admin_bridge container did not start" ; exit 1 ; }; fi
+  if [ $Y = 0 ]; then { echo "## Fail: srv_azure_bridge container did not start" ; exit 1 ; }; fi
 done
 
 # Wait for one time service to exit and delete it.
 sudo docker wait $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") \
-  && echo "## Pass: waited for docker service admin_bridge" \
-  || { echo "## Fail: failed to wait for docker service admin_bridge" ; exit 1 ; }
+  && echo "## Pass: waited for docker service srv_azure_bridge" \
+  || { echo "## Fail: failed to wait for docker service srv_azure_bridge" ; exit 1 ; }
 
-# Remove docker service admin_bridge
+# Remove docker service srv_azure_bridge
 sudo docker service rm $JOB_NAME \
-  && echo "## Pass: removed docker service admin_bridge" \
-  || { echo "## Fail: failed to remove docker service admin_bridge" ; exit 1 ; }
+  && echo "## Pass: removed docker service srv_azure_bridge" \
+  || { echo "## Fail: failed to remove docker service srv_azure_bridge" ; exit 1 ; }
 
 # Get subscription from local mount
 AZURE_SUBSCRIPTION_ID=$(cat /azs/bridge/subscriptionid) \

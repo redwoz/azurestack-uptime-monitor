@@ -1,5 +1,5 @@
 #!/bin/bash
-FUNCTIONS_SCRIPT_VERSION=0.4
+FUNCTIONS_SCRIPT_VERSION=0.5
 
 echo "############ Date       : $(date)"
 echo "############ Job name   : $JOB_NAME"

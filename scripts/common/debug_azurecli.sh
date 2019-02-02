@@ -1,5 +1,5 @@
 #!/bin/bash
-#SCRIPT_VERSION=0.4
+#SCRIPT_VERSION=0.5
 
 ### On the host ###
 JOB_NAME=debug_azurecli
@@ -15,6 +15,7 @@ sudo docker service create \
      --network azs \
      --mount type=bind,src=/azs/common,dst=/azs/common \
      --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
+     --mount type=bind,src=/azs/log,dst=/azs/log \
      --mount type=bind,src=/azs/export,dst=/azs/export \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
