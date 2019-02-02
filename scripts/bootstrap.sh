@@ -143,6 +143,10 @@ sudo chmod -R 755 /azs/{jobs,common,export} \
   && echo "## Pass: add execute permissions to files in /jobs /common and /export directories" \
   || { echo "## Fail: failed to add execute permissions to files in /jobs /common and /export directories" ; exit 1 ; }
 
+sudo chmod -R 777 /azs/log \
+  && echo "## Pass: add write permissions to azs/log directory" \
+  || { echo "## Fail: failed to add write permissions to azs/log directory" ; exit 1 ; }
+
 ##################
 echo "############ Configure Docker"
 
