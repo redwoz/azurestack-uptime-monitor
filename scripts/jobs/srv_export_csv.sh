@@ -45,7 +45,7 @@ EPOCH_END_IN_SEC=$(( \
 # Set filename
 WEEK_FMT=0$WEEK
 WEEK_FMT="${WEEK_FMT: -2}"
-CSV_FILE_NAME=$(cat /run/secrets/azureSubscriptionId)-y${YEAR}w${WEEK_FMT}
+CSV_FILE_NAME=$(cat /run/secrets/tenantSubscriptionId)-y${YEAR}w${WEEK_FMT}
 
 # Export data to file
 curl -G 'http://influxdb:8086/query?db=azs' \

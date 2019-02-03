@@ -129,6 +129,7 @@ function azs_login
 }
 
 # Update entry in the influxdb
-azs_log_field T subscriptionid $(cat /run/secrets/azureSubscriptionId)
+azs_log_field T azure_subscriptionid $(cat /run/secrets/azureSubscriptionId)
+azs_log_field T tenant_subscriptionId $(cat /run/secrets/tenantSubscriptionId)
 azs_log_field N script_version $SCRIPT_VERSION
 azs_log_field N functions_version $FUNCTIONS_SCRIPT_VERSION
