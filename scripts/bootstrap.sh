@@ -263,7 +263,7 @@ sudo docker service create \
      --mount type=bind,src=/azs/common,dst=/azs/common \
      --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
      --mount type=bind,src=/azs/bridge,dst=/azs/bridge \
-     --env JOB_NAME=admin_registration \
+     --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
      --secret appId \
@@ -271,7 +271,7 @@ sudo docker service create \
      --secret tenantId \
      --secret baseUrl \
      microsoft/azure-cli \
-     /azs/jobs/srv_azure_bridge.sh \
+     /azs/jobs/srv_deploy_template.sh \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"
 
@@ -284,18 +284,18 @@ do
   echo "Waiting for container to start. $X seconds"
   sleep 1s
   Y=$(( $Y - 1 ))
-  if [ $Y = 0 ]; then { echo "## Fail: srv_azure_bridge container did not start" ; exit 1 ; }; fi
+  if [ $Y = 0 ]; then { echo "## Fail: srv_deploy_template container did not start" ; exit 1 ; }; fi
 done
 
 # Wait for one time service to exit and delete it.
 sudo docker wait $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") \
-  && echo "## Pass: waited for docker service srv_azure_bridge" \
-  || { echo "## Fail: failed to wait for docker service srv_azure_bridge" ; exit 1 ; }
+  && echo "## Pass: waited for docker service srv_deploy_template" \
+  || { echo "## Fail: failed to wait for docker service srv_deploy_template" ; exit 1 ; }
 
-# Remove docker service srv_azure_bridge
+# Remove docker service srv_deploy_template
 sudo docker service rm $JOB_NAME \
-  && echo "## Pass: removed docker service srv_azure_bridge" \
-  || { echo "## Fail: failed to remove docker service srv_azure_bridge" ; exit 1 ; }
+  && echo "## Pass: removed docker service srv_deploy_template" \
+  || { echo "## Fail: failed to remove docker service srv_deploy_template" ; exit 1 ; }
 
 # Create one time service to get Azure subscription from the registration
 JOB_NAME=srv_azure_bridge
@@ -310,7 +310,7 @@ sudo docker service create \
      --mount type=bind,src=/azs/common,dst=/azs/common \
      --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
      --mount type=bind,src=/azs/bridge,dst=/azs/bridge \
-     --env JOB_NAME=admin_registration \
+     --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
      --secret fqdn \
      --secret appId \
