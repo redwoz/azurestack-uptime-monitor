@@ -69,6 +69,7 @@ sudo docker service create \
      --secret tenantId \
      --secret grafanaAdmin \
      --secret uniqueString \
+     --secret baseUrl \
      microsoft/azure-cli \
      $JOB_SCRIPT \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \

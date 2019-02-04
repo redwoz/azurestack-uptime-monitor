@@ -6,21 +6,13 @@ source /azs/common/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
-################################## Task: Auth #################################
-azs_task_start auth
-
-# Login to Azure Stack cloud 
-# Provide argument "adminmanagement" for authenticating to admin endpoint
-# Provide argument "management" for authenticating to tenant endpoint
-azs_login management
-
-azs_task_end auth
 ################################## Task: Read #################################
 azs_task_start read
 
-RESOURCES=$(az resource list) \
-  && azs_log_field T status tenant_storage_read \
-  || azs_log_field T status tenant_storage_read fail
+STORAGE_ACCOUNT_NAME="$(cat /run/secrets/uniqueString)"storage
+BLOB_ENDPOINT=".blob.${FQDN}"
+
+ech $(curl https://${STORAGE_ACCOUNT_NAME}${BLOB_ENDPOINT}/test/read.log)
 
 azs_task_end read
 ############################### Job: Complete #################################

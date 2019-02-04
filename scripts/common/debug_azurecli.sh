@@ -28,6 +28,7 @@ sudo docker service create \
      --secret tenantId \
      --secret grafanaAdmin \
      --secret uniqueString \
+     --secret baseUrl \
      microsoft/azure-cli \
      /bin/bash 
 

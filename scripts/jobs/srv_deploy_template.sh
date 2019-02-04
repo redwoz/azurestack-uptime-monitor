@@ -30,8 +30,42 @@ az group create \
 az group deployment create \
   --resource-group $(cat /run/secrets/uniqueString) \
   --name bootstrap \
-  --template-uri "$(cat /run/secrets/baseUrl)"/linked/readTemplate.json
+  --template-uri "$(cat /run/secrets/baseUrl)"/linked/readTemplate.json \
   --parameters uniqueString=$(cat /run/secrets/uniqueString)
+
+
+# Create a container and a blob to read
+STORAGE_ACCOUNT_NAME="$(cat /run/secrets/uniqueString)"storage
+
+# Get keys from storage account
+STORAGE_ACCOUNT_KEY=$(az storage account keys list \
+        --account-name $STORAGE_ACCOUNT_NAME \
+        --resource-group $LOCATION \
+        | jq -r ".[0].value") \
+  && azs_log_field T status get_storage_account_key \
+  || azs_log_field T status get_storage_account_key fail
+
+# Create container (if exists? with exisisting data?)
+az storage container create \
+        --name test \
+        --account-name $STORAGE_ACCOUNT_NAME \
+        --account-key $STORAGE_ACCOUNT_KEY \
+        --public-access blob \
+  && azs_log_field T status create_container_log \
+  || azs_log_field T status create_container_log fail
+
+# Create file to upload
+echo $(cat /run/secrets/uniqueString) > read.log
+
+# Upload file to container
+az storage blob upload \
+        --container-name test \
+        --account-name $(cat /run/secrets/storageAccount) \
+        --account-key $STORAGE_ACCOUNT_KEY \
+        --file read.log \
+        --name read.log \
+  && azs_log_field T status upload_log_to_blob \
+  || azs_log_field T status upload_log_to_blob fail
 
 azs_task_end create
 ############################### Job: Complete #################################
