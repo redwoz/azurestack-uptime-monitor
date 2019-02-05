@@ -250,7 +250,56 @@ do
   if [ $X = 0 ]; then { echo "## Fail: influxdb http api not responding" ; exit 1 ; }; fi
 done
 
-# Create one time service to get Azure subscription from the registration
+# Create one time service to boostrap tenant
+JOB_NAME=srv_bootstrap_tenant
+JOB_TIMESTAMP=$(date --utc +%s)
+
+sudo docker service create \
+     --name $JOB_NAME \
+     --label timestamp=$JOB_TIMESTAMP \
+     --detach \
+     --restart-condition none \
+     --network="azs" \
+     --mount type=bind,src=/azs/common,dst=/azs/common \
+     --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
+     --mount type=bind,src=/azs/bridge,dst=/azs/bridge \
+     --env JOB_NAME=$JOB_NAME \
+     --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
+     --secret fqdn \
+     --secret appId \
+     --secret appKey \
+     --secret tenantId \
+     --secret tenantSubscriptionId \
+     --secret uniqueString \
+     --secret baseUrl \
+     microsoft/azure-cli \
+     /azs/jobs/srv_bootstrap_tenant.sh \
+  && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
+  || echo "Unable to create docker service"
+
+# Wait for container to start
+Y=15
+while [ $Y -ge 1 ]
+do
+  CONTAINERID=$(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}")
+  if [ $CONTAINERID <> 0 ]; then break; fi
+  echo "Waiting for container to start. $Y seconds"
+  sleep 1s
+  Y=$(( $Y - 1 ))
+  if [ $Y = 0 ]; then { echo "## Fail: srv_bootstrap_tenant container did not start" ; exit 1 ; }; fi
+done
+
+# Wait for one time service to exit and delete it.
+sudo docker wait $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") \
+  && echo "## Pass: waited for docker service srv_bootstrap_tenant" \
+  || { echo "## Fail: failed to wait for docker service srv_bootstrap_tenant" ; exit 1 ; }
+
+# Remove docker service srv_bootstrap_tenant
+sudo docker service rm $JOB_NAME \
+  && echo "## Pass: removed docker service srv_bootstrap_tenant" \
+  || { echo "## Fail: failed to remove docker service srv_bootstrap_tenant" ; exit 1 ; }
+
+# Create one time service to boostrap admin
 JOB_NAME=srv_bootstrap_admin
 JOB_TIMESTAMP=$(date --utc +%s)
 
@@ -310,55 +359,6 @@ printf $AZURE_SUBSCRIPTION_ID | sudo docker secret create azureSubscriptionId - 
 sudo rm -r /azs/bridge \
   && echo "## Pass: removed /azs/bridge" \
   || { echo "## Fail: unable to remove /azs/bridge" ; exit 1 ; }
-
-# Create one time service to deploy readTemplate
-JOB_NAME=srv_bootstrap_tenant
-JOB_TIMESTAMP=$(date --utc +%s)
-
-sudo docker service create \
-     --name $JOB_NAME \
-     --label timestamp=$JOB_TIMESTAMP \
-     --detach \
-     --restart-condition none \
-     --network="azs" \
-     --mount type=bind,src=/azs/common,dst=/azs/common \
-     --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
-     --mount type=bind,src=/azs/bridge,dst=/azs/bridge \
-     --env JOB_NAME=$JOB_NAME \
-     --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
-     --secret fqdn \
-     --secret appId \
-     --secret appKey \
-     --secret tenantId \
-     --secret tenantSubscriptionId \
-     --secret uniqueString \
-     --secret baseUrl \
-     microsoft/azure-cli \
-     /azs/jobs/srv_bootstrap_tenant.sh \
-  && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
-  || echo "Unable to create docker service"
-
-# Wait for container to start
-Y=15
-while [ $Y -ge 1 ]
-do
-  CONTAINERID=$(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}")
-  if [ $CONTAINERID <> 0 ]; then break; fi
-  echo "Waiting for container to start. $Y seconds"
-  sleep 1s
-  Y=$(( $Y - 1 ))
-  if [ $Y = 0 ]; then { echo "## Fail: srv_bootstrap_tenant container did not start" ; exit 1 ; }; fi
-done
-
-# Wait for one time service to exit and delete it.
-sudo docker wait $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") \
-  && echo "## Pass: waited for docker service srv_bootstrap_tenant" \
-  || { echo "## Fail: failed to wait for docker service srv_bootstrap_tenant" ; exit 1 ; }
-
-# Remove docker service srv_bootstrap_tenant
-sudo docker service rm $JOB_NAME \
-  && echo "## Pass: removed docker service srv_bootstrap_tenant" \
-  || { echo "## Fail: failed to remove docker service srv_bootstrap_tenant" ; exit 1 ; }
 
 # Crontab
 sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf \
