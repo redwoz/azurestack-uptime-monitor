@@ -18,7 +18,6 @@ azs_task_end auth
 ################################# Task: Upload ################################
 azs_task_start upload
 
-# Create storage account (if exists? with exisisting data?)
 # Get Storage Account
 STORAGE_ACCOUNT=$(az storage account list \
         --query "[?name=='$(cat /run/secrets/storageAccount)']") \
@@ -33,7 +32,7 @@ STORAGE_ACCOUNT_KEY=$(az storage account keys list \
   && azs_log_field T status get_storage_account_key \
   || azs_log_field T status get_storage_account_key fail
 
-# Create container (if exists? with exisisting data?)
+# Create container
 az storage container create \
         --name log \
         --account-name $(cat /run/secrets/storageAccount) \
@@ -41,7 +40,7 @@ az storage container create \
   && azs_log_field T status create_container_log \
   || azs_log_field T status create_container_log fail
 
-# Create container (if exists? with exisisting data?)
+# Create container
 az storage container create \
         --name csv \
         --account-name $(cat /run/secrets/storageAccount) \
@@ -49,7 +48,7 @@ az storage container create \
   && azs_log_field T status create_container_csv \
   || azs_log_field T status create_container_csv fail
 
-# For each file in /azs/export > upload to container (if exists? with exisisting data?)
+# For each file in /azs/export > upload to container
 az storage blob upload-batch \
         --destination log \
         --account-name $(cat /run/secrets/storageAccount) \

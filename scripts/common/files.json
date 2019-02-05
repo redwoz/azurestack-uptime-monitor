@@ -17,8 +17,8 @@
     "jobs": [
         "/jobs/admin_arm.sh",
         "/jobs/admin_portal.sh",
-        "/jobs/srv_azure_bridge.sh",
-        "/jobs/srv_deploy_template.sh",
+        "/jobs/srv_bootstrap_admin.sh",
+        "/jobs/srv_bootstrap_tenant.sh",
         "/jobs/srv_export_csv.sh",
         "/jobs/srv_pnu_state.sh",
         "/jobs/srv_upload_blob.sh",
