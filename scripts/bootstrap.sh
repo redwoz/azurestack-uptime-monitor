@@ -270,6 +270,7 @@ sudo docker service create \
      --secret appKey \
      --secret tenantId \
      --secret tenantSubscriptionId \
+     --secret uniqueString \
      --secret baseUrl \
      microsoft/azure-cli \
      /azs/jobs/srv_deploy_template.sh \

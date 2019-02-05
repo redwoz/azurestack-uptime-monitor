@@ -60,7 +60,7 @@ echo $(cat /run/secrets/uniqueString) > read.log
 # Upload file to container
 az storage blob upload \
         --container-name test \
-        --account-name $(cat /run/secrets/storageAccount) \
+        --account-name $STORAGE_ACCOUNT_NAME \
         --account-key $STORAGE_ACCOUNT_KEY \
         --file read.log \
         --name read.log \
