@@ -40,7 +40,7 @@ STORAGE_ACCOUNT_NAME="$(cat /run/secrets/uniqueString)"storage
 # Get keys from storage account
 STORAGE_ACCOUNT_KEY=$(az storage account keys list \
         --account-name $STORAGE_ACCOUNT_NAME \
-        --resource-group $LOCATION \
+        --resource-group $(cat /run/secrets/uniqueString) \
         | jq -r ".[0].value") \
   && azs_log_field T status get_storage_account_key \
   || azs_log_field T status get_storage_account_key fail
