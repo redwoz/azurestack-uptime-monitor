@@ -12,7 +12,7 @@ azs_task_start read
 STORAGE_ACCOUNT_NAME="$(cat /run/secrets/uniqueString)"storage
 BLOB_ENDPOINT=".blob.${FQDN}"
 
-ech $(curl https://${STORAGE_ACCOUNT_NAME}${BLOB_ENDPOINT}/test/read.log)
+echo $(curl https://${STORAGE_ACCOUNT_NAME}${BLOB_ENDPOINT}/test/read.log)
 
 azs_task_end read
 ############################### Job: Complete #################################
