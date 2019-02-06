@@ -55,6 +55,7 @@ SAS_TOKEN=$(az storage account generate-sas \
   || azs_log_field T status create_container_log fail
 
 # Write content to file
+# Check to connect with connecion string and build connection string
 cat << EOF > sas-token-read-access
 url       : https://$(cat /run/secrets/storageAccount).blob.$(cat /run/secrets/fqdn)/csv
 sas-token : $SAS_TOKEN
