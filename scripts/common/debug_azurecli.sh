@@ -29,6 +29,7 @@ sudo docker service create \
      --secret grafanaAdmin \
      --secret uniqueString \
      --secret baseUrl \
+     --secret activationKey \
      microsoft/azure-cli \
      /bin/bash 
 
