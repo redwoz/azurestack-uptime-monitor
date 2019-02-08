@@ -15,64 +15,6 @@ azs_task_start auth
 azs_login management
 
 azs_task_end auth
-############################## Task: Upload SAS ###############################
-azs_task_start sas
-
-# Get Storage Account
-STORAGE_ACCOUNT=$(az storage account list \
-        --query "[?name=='$(cat /run/secrets/storageAccount)']") \
-  && azs_log_field T status get_storage_account \
-  || azs_log_field T status get_storage_account fail
-
-# Get keys from storage account
-STORAGE_ACCOUNT_KEY=$(az storage account keys list \
-        --account-name $(cat /run/secrets/storageAccount) \
-        --resource-group $(echo $STORAGE_ACCOUNT | jq -r ".[].resourceGroup") \
-        | jq -r ".[0].value") \
-  && azs_log_field T status get_storage_account_key \
-  || azs_log_field T status get_storage_account_key fail
-
-# Create container
-az storage container create \
-        --name sas \
-        --account-name $(cat /run/secrets/storageAccount) \
-        --account-key $STORAGE_ACCOUNT_KEY \
-  && azs_log_field T status create_container_log \
-  || azs_log_field T status create_container_log fail
-
-# Add 6 months to current date 60s * 60m * 24h * 7d * 26w = 15724800s
-SAS_EXPIRATION_DATE=$(date -d@"$(( $(date +%s) + 15724800 ))" +%Y-%m-%dT%H:%MZ)
-
-# Create SAS token with 6 month expiration date
-SAS_TOKEN=$(az storage account generate-sas \
-  --permissions cdlruwap \
-  --account-name $(cat /run/secrets/storageAccount) \
-  --account-key $STORAGE_ACCOUNT_KEY \
-  --services b \
-  --resource-types co \
-  --expiry $SAS_EXPIRATION_DATE) \
-  && azs_log_field T status create_container_log \
-  || azs_log_field T status create_container_log fail
-
-# Write content to file
-cat << EOF > sas-token-read-access
-url       : https://$(cat /run/secrets/storageAccount).blob.$(cat /run/secrets/fqdn)/csv
-sas-token : $SAS_TOKEN
-
-This sas token provides read only access to the csv container and expires $SAS_EXPIRATION_DATE
-EOF
-
-# Upload file to container
-az storage blob upload \
-        --container-name sas \
-        --account-name $(cat /run/secrets/storageAccount) \
-        --account-key $STORAGE_ACCOUNT_KEY \
-        --file sas-token-read-access \
-        --name read.log \
-  && azs_log_field T status upload_log_to_blob \
-  || azs_log_field T status upload_log_to_blob fail
-
-azs_task_end sas
 ###################### Task: Create Target RG and Template ####################
 azs_task_start create
 
