@@ -3,13 +3,12 @@
     "contentVersion": "1.0.0.0",
     "apiProfile": "2018-03-01-hybrid",
     "parameters": {
-        "baseUrl": {
-            "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master"
+        "activationKey":{
+            "type": "securestring"
         },
         "adminUsername": {
             "type": "string",
-            "defaultValue": "azureAdmin"
+            "defaultValue": "azureadmin"
         },
         "sshPublicKey": {
             "type": "string"
@@ -43,6 +42,7 @@
     },
     "variables": {
         "prefix": "azs",
+        "baseUrl":"https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master",
         "vmSize": "Standard_F1s",
         "names": {
             "pubIp": "[concat(variables('prefix'),'pubIp')]",
@@ -56,7 +56,8 @@
             "storage": "[concat('export',uniqueString(resourceGroup().id))]"
         },
         "scriptArguments": {
-            "baseUrl": "[parameters('baseUrl')]",
+            "activationKey":"[parameters('activationKey')]",
+            "baseUrl": "[variables('baseUrl')]",
             "subscriptionId": "[subscription().subscriptionId]",
             "appId": "[parameters('appId')]",
             "appKey": "[parameters('appKey')]",
@@ -319,7 +320,7 @@
                 "protectedSettings": {
                     "commandToExecute": "[concat('/bin/bash bootstrap.sh ', variables('singleQuote'), string(variables('scriptArguments')), variables('singleQuote'),' ',reference(variables('names').storage).primaryEndpoints.blob)]",
                     "fileUris": [
-                        "[concat(parameters('baseUrl'),'/scripts/bootstrap.sh')]"
+                        "[concat(variables('baseUrl'),'/scripts/bootstrap.sh')]"
                     ]
                 }
             }
