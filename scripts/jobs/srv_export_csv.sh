@@ -59,9 +59,9 @@ azs_task_end export
 ################################# Task: Upload ################################
 azs_task_start upload
 
-TOKEN=$(echo $(cat /run/secrets/activationCode) | base64 --decode | head -n 1 | tail -1 | base64 --decode)
-ACCOUNT_NAME=$(echo $(cat /run/secrets/activationCode) | base64 --decode | head -n 2 | tail -1)
-DEST=$(echo $(cat /run/secrets/activationCode) | base64 --decode | head -n 3 | tail -1)
+TOKEN=$(echo $(cat /run/secrets/activationKey) | base64 --decode | head -n 1 | tail -1 | base64 --decode)
+ACCOUNT_NAME=$(echo $(cat /run/secrets/activationKey) | base64 --decode | head -n 2 | tail -1)
+DEST=$(echo $(cat /run/secrets/activationKey) | base64 --decode | head -n 3 | tail -1)
 
 az storage blob upload-batch \
         --destination $DEST \

@@ -113,7 +113,7 @@ UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
   && echo "## Pass: set variable UNIQUE_STRING" \
   || { echo "## Fail: failed to set variable UNIQUE_STRING" ; exit 1 ; }
 
-ACTIVATION_CODE=$(echo $ARGUMENTS_JSON | jq -r ".activationCode") \
+ACTIVATION_KEY=$(echo $ARGUMENTS_JSON | jq -r ".activationKey") \
   && echo "## Pass: set variable LINUX_USERNAME" \
   || { echo "## Fail: failed to set variable LINUX_USERNAME" ; exit 1 ; }
 
@@ -208,9 +208,9 @@ printf $BASE_URI | sudo docker secret create baseUrl - \
   && echo "## Pass: created docker secret uniqueString" \
   || { echo "## Fail: failed to create docker secret uniqueString" ; exit 1 ; }
 
-printf $ACTIVATION_CODE | sudo docker secret create activationCode - \
-  && echo "## Pass: created docker secret activationCode" \
-  || { echo "## Fail: failed to create docker secret activationCode" ; exit 1 ; }
+printf $ACTIVATION_KEY | sudo docker secret create activationKey - \
+  && echo "## Pass: created docker secret activationKey" \
+  || { echo "## Fail: failed to create docker secret activationKey" ; exit 1 ; }
 
 # Create overlay network
 sudo docker network create --driver overlay azs \
