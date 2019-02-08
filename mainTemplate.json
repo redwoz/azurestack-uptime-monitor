@@ -251,6 +251,7 @@
             "dependsOn": [
                 "[concat('Microsoft.Network/networkSecurityGroups/',variables('names').nsg)]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('names').vNet)]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('names').lb)]",
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('names').pubIp)]"
             ]
         },
