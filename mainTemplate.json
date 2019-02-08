@@ -95,7 +95,7 @@
             "type": "Microsoft.Network/loadBalancers",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[variables('names').pubIp]"
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('names').pubIp)]"
             ],
             "properties": {
                 "frontendIPConfigurations": [
@@ -251,7 +251,7 @@
             "dependsOn": [
                 "[concat('Microsoft.Network/networkSecurityGroups/',variables('names').nsg)]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('names').vNet)]",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('names').lb)]",
+                "[concat('Microsoft.Network/loadBalancers/', variables('names').lb)]",
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('names').pubIp)]"
             ]
         },
