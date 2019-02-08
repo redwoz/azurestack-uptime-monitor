@@ -32,5 +32,17 @@ sudo docker service create \
      microsoft/azure-cli \
      /bin/bash 
 
+# Wait for container to start
+Y=15
+while [ $Y -ge 1 ]
+do
+  CONTAINERID=$(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}")
+  if [ $CONTAINERID <> 0 ]; then break; fi
+  echo "Waiting for container to start. $Y seconds"
+  sleep 1s
+  Y=$(( $Y - 1 ))
+  if [ $Y = 0 ]; then { echo "## Fail: srv_bootstrap_tenant container did not start" ; exit 1 ; }; fi
+done
+
 # Exec to the VM
 sudo docker exec -it $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") /bin/bash
