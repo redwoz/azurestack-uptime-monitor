@@ -28,6 +28,7 @@
         ],
         "shared": [
             "/cli/shared/functions.sh",
+            "/cli/shared/mainTemplate.json",
             "/cli/shared/srv_blob.sh",
             "/cli/shared/srv_csv.sh",
             "/cli/shared/srv_pnu.sh"
