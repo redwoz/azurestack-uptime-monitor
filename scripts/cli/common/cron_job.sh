@@ -71,7 +71,7 @@ sudo docker service create \
      --secret uniqueString \
      --secret baseUrl \
      --secret activationKey \
-     microsoft/azure-cli \
+     microsoft/azure-cli:2.0.57 \
      $JOB_SCRIPT \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"
