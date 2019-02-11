@@ -8,14 +8,15 @@ source /azs/cli/shared/functions.sh \
 ################################## Task: Read #################################
 azs_task_start read
 
+UNIQUE_STRING=$(cat /run/secrets/cli | jq -r '.uniqueString')
 STORAGE_ACCOUNT_NAME="$(cat /run/secrets/cli | jq -r '.uniqueString')"storage
 BLOB_ENDPOINT=.blob."$(cat /run/secrets/cli | jq -r '.fqdn')"
 
-FILE_CONTENT=$(curl https://${STORAGE_ACCOUNT_NAME}${BLOB_ENDPOINT}/test/read.log) \
+FILE_CONTENT=$(curl https://${STORAGE_ACCOUNT_NAME}${BLOB_ENDPOINT}/${UNIQUE_STRING}/read.log) \
   && azs_log_field T status tenant_storage_read_file \
   || azs_log_field T status tenant_storage_read_file fail
 
-[ "$FILE_CONTENT" = "$(cat /run/secrets/cli | jq -r '.uniqueString')" ] \
+[ "$FILE_CONTENT" = "$UNIQUE_STRING" ] \
   && azs_log_field T status tenant_storage_compare_content \
   || azs_log_field T status tenant_storage_compare_content fail
 
