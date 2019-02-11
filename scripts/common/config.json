@@ -3,7 +3,7 @@
         "script":"0.8",
         "influxdb":"1.7.3",
         "grafana":"5.4.3",
-        "cli":"2.0.57"
+        "azurecli":"2.0.57"
     },
     "files": {
         "common": [
@@ -20,15 +20,17 @@
             "/grafana/datasources/influxdb.yml"
         ],
         "jobs": [
-            "/jobs/admin_arm.sh",
-            "/jobs/admin_portal.sh",
-            "/jobs/functions.sh",
-            "/jobs/srv_blob.sh",
-            "/jobs/srv_csv.sh",
-            "/jobs/srv_pnu.sh",
-            "/jobs/tenant_arm.sh",
-            "/jobs/tenant_portal.sh",
-            "/jobs/tenant_storage.sh"
+            "/cli/jobs/admin_arm.sh",
+            "/cli/jobs/admin_portal.sh",
+            "/cli/jobs/tenant_arm.sh",
+            "/cli/jobs/tenant_portal.sh",
+            "/cli/jobs/tenant_storage.sh"
+        ],
+        "shared": [
+            "/cli/shared/functions.sh",
+            "/cli/shared/srv_blob.sh",
+            "/cli/shared/srv_csv.sh",
+            "/cli/shared/srv_pnu.sh"
         ]
     }
 }

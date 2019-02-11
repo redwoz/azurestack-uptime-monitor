@@ -54,6 +54,7 @@ LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
   && echo "## Pass: set variable LINUX_USERNAME" \
   || { echo "## Fail: set variable LINUX_USERNAME" ; exit 1 ; }
 
+
 ########################### Install Prereqs ###################################
 echo "##################### Install Prereqs"
 
@@ -99,15 +100,11 @@ sudo apt-get install -y docker-ce \
 
 # Files
 
-sudo mkdir -p /azs/{influxdb,grafana/{database,datasources,dashboards},cli/{jobs,common,export,log}} \
+sudo mkdir -p /azs/{influxdb,grafana/{database,datasources,dashboards},common,cli/{jobs,export,log}} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
-BASE_URL=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl") \
-  && echo "## Pass: set variable BASE_URL" \
-  || { echo "## Fail: set variable BASE_URL" ; exit 1 ; }
-
-FILE=$(sudo curl -s "$BASE_URL"/scripts/cli/common/config.json | jq -r ".files[] | .[]") \
+FILE=$(sudo curl -s "$BASE_URL"/scripts/common/config.json | jq -r ".files[] | .[]") \
   && echo "## Pass: retrieve file json" \
   || { echo "## Fail: retrieve file json" ; exit 1 ; }
 
@@ -119,6 +116,18 @@ do
 done
 
 # Docker images
+
+INFLUXDB_VERSION=$(sudo cat /azs/scripts/common/config.json | jq -r ".version.influxdb") \
+  && echo "## Pass: retrieve influxdb version from config" \
+  || { echo "## Fail: retrieve influxdb version from config" ; exit 1 ; }
+
+GRAFANA_VERSION=$(sudo cat /azs/scripts/common/config.json | jq -r ".version.grafana") \
+  && echo "## Pass: retrieve grafana version from config" \
+  || { echo "## Fail: retrieve grafana version from config" ; exit 1 ; }
+
+AZURECLI_VERSION=$(sudo cat /azs/scripts/common/config.json | jq -r ".version.azurecli") \
+  && echo "## Pass: retrieve azurecli version from config" \
+  || { echo "## Fail: retrieve azurecli version from config" ; exit 1 ; }
 
 sudo docker pull influxdb:$INFLUXDB_VERSION \
   && echo "## Pass: pulled influxdb image from docker hub" \
@@ -139,7 +148,7 @@ sudo cp /var/lib/waagent/Certificates.pem /azs/cli/common/Certificates.pem \
   && echo "## Pass: copy the waagent cert to the common directory" \
   || { echo "## Fail: copy the waagent cert to the common directory" ; exit 1 ; }
 
-sudo chmod -R 755 /azs/cli/{jobs,common,export} \
+sudo chmod -R 755 /azs/{common,cli/{jobs,export}} \
   && echo "## Pass: set execute permissions for directories" \
   || { echo "## Fail: set execute permissions for directories" ; exit 1 ; }
 
