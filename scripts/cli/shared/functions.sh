@@ -88,7 +88,7 @@ function azs_job_end
             --destination $DEST \
             --account-name $ACCOUNT_NAME \
             --sas-token $TOKEN \
-            --source /azs/export \
+            --source /azs/cli/export \
     && azs_log_field T status upload_to_blob \
     || azs_log_field T status upload_to_blob fail
   fi

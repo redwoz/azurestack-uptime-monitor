@@ -50,7 +50,7 @@ CSV_FILE_NAME=$(cat /run/secrets/cli | jq -r '.tenantSubscriptionId')-y${YEAR}w$
 curl -G 'http://influxdb:8086/query?db=azs' \
       --data-urlencode "q=SELECT * FROM /.*/ where time >= ${EPOCH_START_IN_SEC}s and time <= ${EPOCH_END_IN_SEC}s" \
       -H "Accept: application/csv" \
-      -o /azs/export/$CSV_FILE_NAME.csv \
+      -o /azs/cli/export/$CSV_FILE_NAME.csv \
   && azs_log_field T status srv_export_csv_to_file \
   || azs_log_field T status srv_export_csv_to_file fail
 
