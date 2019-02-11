@@ -47,6 +47,10 @@ azs_existing_service_remove
 # If the function exits with a 1, then the service exists but is not removed.
 # IF [ $? = 1 ] then notify?
 
+AZURECLI_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.azurecli") \
+  && echo "## Pass: retrieve azurecli version from config" \
+  || { echo "## Fail: retrieve azurecli version from config" ; exit 1 ; }
+
 # Create new service and add a new record in the DB (with current JOB_TIMESTAMP)
 sudo docker service create \
      --name $JOB_NAME \
@@ -54,24 +58,11 @@ sudo docker service create \
      --detach \
      --restart-condition none \
      --network="azs" \
-     --mount type=bind,src=/azs/common,dst=/azs/common \
-     --mount type=bind,src=/azs/jobs,dst=/azs/jobs \
-     --mount type=bind,src=/azs/log,dst=/azs/log \
-     --mount type=bind,src=/azs/export,dst=/azs/export \
+     --mount type=bind,src=/azs/cli,dst=/azs/cli \
      --env JOB_NAME=$JOB_NAME \
      --env JOB_TIMESTAMP=$JOB_TIMESTAMP \
-     --secret fqdn \
-     --secret storageAccount \
-     --secret tenantSubscriptionId \
-     --secret azureSubscriptionId \
-     --secret appId \
-     --secret appKey \
-     --secret tenantId \
-     --secret grafanaAdmin \
-     --secret uniqueString \
-     --secret baseUrl \
-     --secret activationKey \
-     microsoft/azure-cli:2.0.57 \
+     --secret cli \
+     microsoft/azure-cli:$AZURECLI_VERSION \
      $JOB_SCRIPT \
   && curl -s -i -XPOST "http://localhost:8086/write?db=azs&precision=s" --data-binary "${JOB_NAME} job=0,status=\"docker_service_created\" ${JOB_TIMESTAMP}" | grep HTTP \
   || echo "Unable to create docker service"
