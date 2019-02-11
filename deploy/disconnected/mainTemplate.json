@@ -1,0 +1,332 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "apiProfile": "2018-03-01-hybrid",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "azureadmin"
+        },
+        "sshPublicKey": {
+            "type": "string"
+        },
+        "appId": {
+            "type": "string"
+        },
+        "appKey": {
+            "type": "securestring"
+        },
+        "grafanaPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the Grafana portal"
+            }
+        },
+        "ubuntuSku": {
+            "type": "string",
+            "allowedValues": [
+                "16.04-LTS",
+                "18.04-LTS"
+            ],
+            "defaultValue": "18.04-LTS"
+        }
+    },
+    "variables": {
+        "prefix": "azs",
+        "vmSize": "Standard_F2s_v2",
+        "names": {
+            "pubIp": "[concat(variables('prefix'),'pubIp')]",
+            "pubIpDns": "[toLower(concat(variables('prefix'),'-',uniqueString(resourceGroup().id)))]",
+            "lb": "[concat(variables('prefix'),'lb')]",
+            "nsg": "[concat(variables('prefix'),'nsg')]",
+            "vNet": "[concat(variables('prefix'),'vNet')]",
+            "subnet": "[concat(variables('prefix'),'subnet')]",
+            "vNic": "[concat(variables('prefix'),'vNic')]",
+            "vm": "[concat(variables('prefix'),'vm')]",
+            "storage": "[concat('export',uniqueString(resourceGroup().id))]",
+            "apiProfile": "[deployment().properties.template.apiProfile]"
+        },
+        "scriptArguments": {
+            "activationKey":"[parameters('activationKey')]",
+            "tenantSubscriptionId": "[subscription().subscriptionId]",
+            "appId": "[parameters('appId')]",
+            "appKey": "[parameters('appKey')]",
+            "tenantId": "[subscription().tenantId]",
+            "grafanaPassword": "[parameters('grafanaPassword')]",
+            "linuxUsername":"[parameters('adminUsername')]",
+            "uniqueString":"[uniqueString(concat(variables('prefix'),resourceGroup().id))]",
+            "storageAccount":"[concat('export',uniqueString(resourceGroup().id))]",
+            "resourceGroup":"[resourceGroup().name]",
+            "location":"[resourceGroup().location]",
+            "apiProfile":"[deployment().properties.template.apiProfile]"
+        },
+        "singleQuote": "'"
+
+    },
+    "resources": [
+        {
+            "name": "[variables('names').storage]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[resourceGroup().location]",
+            "sku":{
+                "name":"Standard_LRS"
+            }
+        },
+        {
+            "name": "[variables('names').pubIp]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIpAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('names').pubIpDns]"
+                }
+            }
+        },
+        {
+            "name": "[variables('names').lb]",
+            "type": "Microsoft.Network/loadBalancers",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('names').pubIp)]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[concat(variables('names').lb,'-fe')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('names').pubIp)]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[concat(variables('names').lb,'-be')]",
+                        "properties": {}
+                    }
+                ],
+                "loadBalancingRules": [],
+                "probes": [
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 22,
+                            "intervalInSeconds": 10,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "inboundNatRules": [
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/frontendIPConfigurations/',variables('names').lb,'-fe')]"
+                            },
+                            "frontendPort": 22,
+                            "backendPort": 22,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 4,
+                            "protocol": "Tcp",
+                            "enableTcpReset": false
+                        }
+                    },
+                    {
+                        "name": "Grafana",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/frontendIPConfigurations/',variables('names').lb,'-fe')]"
+                            },
+                            "frontendPort": 3000,
+                            "backendPort": 3000,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 4,
+                            "protocol": "Tcp",
+                            "enableTcpReset": false
+                        }
+                    }
+                ],
+                "outboundRules": []
+            }
+        },
+        {
+            "name": "[variables('names').nsg]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "priority": 300,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
+                        }
+                    },
+                    {
+                        "name": "Grafana",
+                        "properties": {
+                            "priority": 301,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "3000"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('names').vNet]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.10.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('names').subnet]",
+                        "properties": {
+                            "addressPrefix": "10.10.0.0/24"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('names').vNic]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('names').vNet),'/subnets/',variables('names').subnet)]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/backendAddressPools/',variables('names').lb,'-be')]"
+                                }
+                            ],
+                            "loadBalancerInboundNatRules": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/inboundNatRules/','SSH')]"
+                                },
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('names').lb),'/inboundNatRules/','Grafana')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('names').nsg)]"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/',variables('names').nsg)]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('names').vNet)]",
+                "[concat('Microsoft.Network/loadBalancers/', variables('names').lb)]",
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('names').pubIp)]"
+            ]
+        },
+        {
+            "name": "[variables('names').vm]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('names').vNic)]"
+            ],
+            "properties": {
+                "osProfile": {
+                    "computerName": "[variables('names').vm]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                                    "keyData": "[parameters('sshPublicKey')]"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "[parameters('ubuntuSku')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat(variables('prefix'),'osdisk')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('names').vNic)]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('names').vm,'/config')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('names').vm)]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "timestamp": "1"
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('/bin/bash /azs/disconnected/bootstrap.sh ', variables('singleQuote'), string(variables('scriptArguments')), variables('singleQuote'),' ',reference(variables('names').storage).primaryEndpoints.blob)]",
+                    "fileUris": []
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "grafanaEndpoint":{
+            "type": "string",
+            "value": "[concat('http://',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('names').pubIp)).IpAddress,':3000')]"
+        },
+        "sshEndpoint":{
+            "type": "string",
+            "value": "[concat('ssh ',parameters('adminUsername'),'@',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('names').pubIp)).IpAddress)]"
+        }
+    }
+}

@@ -46,19 +46,17 @@ UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
   && echo "## Pass: set variable UNIQUE_STRING" \
   || { echo "## Fail: set variable UNIQUE_STRING" ; exit 1 ; }
 
-BASE_URL=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl") \
-  && echo "## Pass: set variable BASE_URL" \
-  || { echo "## Fail: set variable BASE_URL" ; exit 1 ; }
-
 LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
   && echo "## Pass: set variable LINUX_USERNAME" \
   || { echo "## Fail: set variable LINUX_USERNAME" ; exit 1 ; }
 
-sudo cp /var/lib/waagent/Certificates.pem /azs/cli/common/Certificates.pem \
+# Permissions
+
+sudo cp /var/lib/waagent/Certificates.pem /azs/cli/shared/Certificates.pem \
   && echo "## Pass: copy the waagent cert to the common directory" \
   || { echo "## Fail: copy the waagent cert to the common directory" ; exit 1 ; }
 
-sudo chmod -R 755 /azs/cli/{jobs,common,export} \
+sudo chmod -R 755 /azs/{common,cli/{jobs,shared,export}} \
   && echo "## Pass: set execute permissions for directories" \
   || { echo "## Fail: set execute permissions for directories" ; exit 1 ; }
 
@@ -66,16 +64,28 @@ sudo chmod -R 777 /azs/cli/log \
   && echo "## Pass: set write permissions for directory" \
   || { echo "## Fail: set write permissions for directory" ; exit 1 ; }
 
-########################### Function Login ####################################
-echo "##################### Function Login"
+########################### Function az login and logout ######################
+echo "##################### Function az login and logout"
 
 function azs_login
 {
   local FQDNHOST=$1
 
-  export REQUESTS_CA_BUNDLE=/azs/cli/common/Certificates.pem \
+  export REQUESTS_CA_BUNDLE=/azs/cli/shared/Certificates.pem \
     && echo "## Pass: set REQUESTS_CA_BUNDLE with AzureStack root CA" \
     || { echo "## Fail: set REQUESTS_CA_BUNDLE with AzureStack root CA" ; exit 1 ; }
+
+  # Set to Azure Cloud first to cleanup a profile from failed deployments
+  az cloud set \
+    --name AzureCloud \
+  && echo "## Pass: select AzureCloud" \
+  || { echo "## Fail: select cloud" ; exit 1 ; }
+
+  # Cleanup existing profile from failed deployment
+  az cloud unregister \
+      --name AzureStackCloud \
+  && echo "## Pass: unregister AzureStackCloud" \
+  || echo "## Pass: AzureStackCloud does not exist yet" 
 
   az cloud register \
       --name AzureStackCloud \
@@ -123,7 +133,6 @@ function azs_logout
     && echo "## Pass: select cloud" \
     || { echo "## Fail: select cloud" ; exit 1 ; }
 
-
   az cloud unregister \
         --name AzureStackCloud \
     && echo "## Pass: unregister AzureStackCloud" \
@@ -146,7 +155,7 @@ az group create \
 az group deployment create \
   --resource-group $UNIQUE_STRING \
   --name bootstrap \
-  --template-file /azs/deploy/linked/mainTemplate.json \
+  --template-file /azs/cli/shared/mainTemplate.json \
   --parameters uniqueString=$UNIQUE_STRING \
   && echo "## Pass: deploy template" \
   || { echo "## Fail: deploy template" ; exit 1 ; }
@@ -271,7 +280,12 @@ ARGUMENTS_JSON=$(echo $ARGUMENTS_JSON \
   && echo "## Pass: add azureSubscriptionId" \
   || { echo "## Fail: add azureSubscriptionId" ; exit 1 ; }
 
-echo $JSON_ARGUMENTS | sudo docker secret create cli - \
+ARGUMENTS_JSON=$(echo $ARGUMENTS_JSON \
+      | jq --arg X $(sudo cat /azs/common/config.json | jq -r ".version.script") '. + {scriptVersion: $X}') \
+  && echo "## Pass: add fqdn" \
+  || { echo "## Fail: add fqdn" ; exit 1 ; }
+
+echo $ARGUMENTS_JSON | sudo docker secret create cli - \
   && echo "## Pass: created docker secret cli" \
   || { echo "## Fail: created docker secret cli" ; exit 1 ; }
 

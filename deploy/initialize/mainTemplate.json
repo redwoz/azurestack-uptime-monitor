@@ -1,0 +1,188 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "apiProfile": "2018-03-01-hybrid",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "azureadmin"
+        },
+        "sshPublicKey": {
+            "type": "string"
+        },
+        "ubuntuSku": {
+            "type": "string",
+            "allowedValues": [
+                "16.04-LTS",
+                "18.04-LTS"
+            ],
+            "defaultValue": "18.04-LTS"
+        }
+    },
+    "variables": {
+        "prefix": "azs",
+        "vmSize": "Standard_F2s_v2",
+        "names": {
+            "pubIp": "[concat(variables('prefix'),'pubIp')]",
+            "nsg": "[concat(variables('prefix'),'nsg')]",
+            "vNet": "[concat(variables('prefix'),'vNet')]",
+            "subnet": "[concat(variables('prefix'),'subnet')]",
+            "vNic": "[concat(variables('prefix'),'vNic')]",
+            "vm": "[concat(variables('prefix'),'vm')]"
+        }
+    },
+    "resources": [
+        {
+            "name": "[variables('names').pubIp]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIpAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+            }
+        },
+        {
+            "name": "[variables('names').nsg]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "priority": 300,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('names').vNet]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.10.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('names').subnet]",
+                        "properties": {
+                            "addressPrefix": "10.10.0.0/24"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('names').vNic]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('names').vNet),'/subnets/',variables('names').subnet)]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('names').pubIp)]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('names').nsg)]"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/',variables('names').nsg)]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('names').vNet)]",
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('names').pubIp)]"
+            ]
+        },
+        {
+            "name": "[variables('names').vm]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('names').vNic)]"
+            ],
+            "properties": {
+                "osProfile": {
+                    "computerName": "[variables('names').vm]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                                    "keyData": "[parameters('sshPublicKey')]"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "[parameters('ubuntuSku')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat(variables('prefix'),'osdisk')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('names').vNic)]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('names').vm,'/config')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('names').vm)]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "timestamp": "1"
+                },
+                "protectedSettings": {
+                    "commandToExecute": "/bin/bash initialize.sh",
+                    "fileUris": [
+                        "https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master/deploy/initialize/initialize.sh"
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
