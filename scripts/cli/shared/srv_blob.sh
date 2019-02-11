@@ -1,8 +1,7 @@
 #!/bin/bash
-SCRIPT_VERSION=0.5
 
 # Source functions.sh
-source /azs/common/functions.sh \
+source /azs/cli/shared/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
@@ -18,16 +17,10 @@ azs_task_end auth
 ################################# Task: Upload ################################
 azs_task_start upload
 
-# Get Storage Account
-STORAGE_ACCOUNT=$(az storage account list \
-        --query "[?name=='$(cat /run/secrets/storageAccount)']") \
-  && azs_log_field T status get_storage_account \
-  || azs_log_field T status get_storage_account fail
-
 # Get keys from storage account
 STORAGE_ACCOUNT_KEY=$(az storage account keys list \
-        --account-name $(cat /run/secrets/storageAccount) \
-        --resource-group $(echo $STORAGE_ACCOUNT | jq -r ".[].resourceGroup") \
+        --account-name $(cat /run/secrets/cli | jq -r '.storageAccount') \
+        --resource-group $(cat /run/secrets/cli | jq -r '.resourceGroup') \
         | jq -r ".[0].value") \
   && azs_log_field T status get_storage_account_key \
   || azs_log_field T status get_storage_account_key fail
@@ -35,7 +28,7 @@ STORAGE_ACCOUNT_KEY=$(az storage account keys list \
 # Create container
 az storage container create \
         --name log \
-        --account-name $(cat /run/secrets/storageAccount) \
+        --account-name $(cat /run/secrets/cli | jq -r '.storageAccount') \
         --account-key $STORAGE_ACCOUNT_KEY \
   && azs_log_field T status create_container_log \
   || azs_log_field T status create_container_log fail
@@ -43,7 +36,7 @@ az storage container create \
 # Create container
 az storage container create \
         --name csv \
-        --account-name $(cat /run/secrets/storageAccount) \
+        --account-name $(cat /run/secrets/cli | jq -r '.storageAccount') \
         --account-key $STORAGE_ACCOUNT_KEY \
   && azs_log_field T status create_container_csv \
   || azs_log_field T status create_container_csv fail
@@ -51,7 +44,7 @@ az storage container create \
 # For each file in /azs/export > upload to container
 az storage blob upload-batch \
         --destination log \
-        --account-name $(cat /run/secrets/storageAccount) \
+        --account-name $(cat /run/secrets/cli | jq -r '.storageAccount') \
         --account-key $STORAGE_ACCOUNT_KEY \
         --source /azs/log \
   && azs_log_field T status upload_log_to_blob \
@@ -60,7 +53,7 @@ az storage blob upload-batch \
 # For each file in /azs/log > upload to container, overwrite existing
 az storage blob upload-batch \
         --destination csv \
-        --account-name $(cat /run/secrets/storageAccount) \
+        --account-name $(cat /run/secrets/cli | jq -r '.storageAccount') \
         --account-key $STORAGE_ACCOUNT_KEY \
         --source /azs/export \
   && azs_log_field T status upload_csv_to_blob \

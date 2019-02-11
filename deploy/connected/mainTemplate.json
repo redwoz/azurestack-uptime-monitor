@@ -67,6 +67,7 @@
             "linuxUsername":"[parameters('adminUsername')]",
             "uniqueString":"[uniqueString(concat(variables('prefix'),resourceGroup().id))]",
             "storageAccount":"[concat('export',uniqueString(resourceGroup().id))]",
+            "resourceGroup":"[resourceGroup().name]",
             "location":"[resourceGroup().location]",
             "apiProfile":"[deployment().properties.template.apiProfile]"
         },
@@ -325,7 +326,7 @@
                 "protectedSettings": {
                     "commandToExecute": "[concat('/bin/bash bootstrap.sh ', variables('singleQuote'), string(variables('scriptArguments')), variables('singleQuote'),' ',reference(variables('names').storage).primaryEndpoints.blob)]",
                     "fileUris": [
-                        "[concat(variables('baseUrl'),'/scripts/bootstrap.sh')]"
+                        "[concat(variables('baseUrl'),'/deploy/connected/bootstrap.sh')]"
                     ]
                 }
             }

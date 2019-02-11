@@ -361,6 +361,11 @@ ARGUMENTS_JSON=$(echo $ARGUMENTS_JSON \
   && echo "## Pass: add azureSubscriptionId" \
   || { echo "## Fail: add azureSubscriptionId" ; exit 1 ; }
 
+ARGUMENTS_JSON=$(echo $ARGUMENTS_JSON \
+      | jq --arg X $(sudo cat /azs/common/config.json | jq -r ".version.script") '. + {scriptVersion: $X}') \
+  && echo "## Pass: add fqdn" \
+  || { echo "## Fail: add fqdn" ; exit 1 ; }
+
 echo $ARGUMENTS_JSON | sudo docker secret create cli - \
   && echo "## Pass: created docker secret cli" \
   || { echo "## Fail: created docker secret cli" ; exit 1 ; }

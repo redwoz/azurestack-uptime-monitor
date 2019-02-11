@@ -1,10 +1,11 @@
 #!/bin/bash
-FUNCTIONS_SCRIPT_VERSION=0.5
 
 echo "############ Date       : $(date)"
 echo "############ Job name   : $JOB_NAME"
-echo "############ Version    : $SCRIPT_VERSION"
-echo "############ Functions  : $FUNCTIONS_SCRIPT_VERSION"
+echo "############ Version    : $(cat /run/secrets/cli | jq -r '.scriptVersion')"
+
+########################### Set Variables #####################################
+echo "##################### Set Variables"
 
 function azs_log_field
 {
@@ -76,6 +77,22 @@ function azs_task_end
 
 function azs_job_end
 {
+  local KEY=$(cat /run/secrets/cli | jq -r '.activationKey')
+  if [[ $JOB_NAME = "srv_csv" && $KEY != "null" ]]
+  then
+    TOKEN=$(echo $KEY | base64 -d | head -n 1 | tail -1 | base64 -d)
+    ACCOUNT_NAME=$(echo $KEY | base64 -d | head -n 2 | tail -1)
+    DEST=$(echo $KEY | base64 -d | head -n 3 | tail -1)
+
+    az storage blob upload-batch \
+            --destination $DEST \
+            --account-name $ACCOUNT_NAME \
+            --sas-token $TOKEN \
+            --source /azs/export \
+    && azs_log_field T status upload_to_blob \
+    || azs_log_field T status upload_to_blob fail
+  fi
+
   echo "## Job complete: $JOB_NAME"
   # Set the runtime for the job
   azs_log_runtime job $JOB_TIMESTAMP
@@ -88,39 +105,39 @@ function azs_login
   local FQDNHOST=$1
 
   # Set REQUESTS_CA_BUNDLE variable with AzureStack root CA
-  export REQUESTS_CA_BUNDLE=/azs/common/Certificates.pem \
+  export REQUESTS_CA_BUNDLE=/azs/cli/shared/Certificates.pem \
     && azs_log_field T status auth_ca_bundle \
     || azs_log_field T status auth_ca_bundle fail
 
   ## Register cloud (cloud_register)
-  az cloud register -n AzureStackCloud --endpoint-resource-manager "https://$FQDNHOST.$(cat /run/secrets/fqdn)" \
+  az cloud register \
+        --name AzureStackCloud \
+        --endpoint-resource-manager "https://$FQDNHOST.$(cat /run/secrets/cli | jq -r '.fqdn')" \
+        --suffix-storage-endpoint "$(cat /run/secrets/cli | jq -r '.fqdn')" \
+        --profile "$(cat /run/secrets/cli | jq -r '.apiProfile')" \
     && azs_log_field T status auth_cloud_register \
     || azs_log_field T status auth_cloud_register fail
 
   ## Select cloud
-  az cloud set -n AzureStackCloud \
+  az cloud set \
+        --name AzureStackCloud \
     && azs_log_field T status auth_select_cloud \
     || azs_log_field T status auth_cloud_register fail
 
-  ## Set Api Profile
-  az cloud update --suffix-storage-endpoint "$(cat /run/secrets/fqdn)" \
-    && azs_log_field T status auth_set_storage_endpoint \
-    || azs_log_field T status auth_set_storage_endpoint fail
-
-  ## Set Blob Endpoint
-  az cloud update --profile 2018-03-01-hybrid \
-    && azs_log_field T status auth_set_apiprofile \
-    || azs_log_field T status auth_set_apiprofile fail
-
   ## Sign in as SPN
-  az login --service-principal --tenant $(cat /run/secrets/tenantId) -u $(cat /run/secrets/appId) -p $(cat /run/secrets/appKey) \
+  az login \
+        --service-principal \
+        --tenant $(cat /run/secrets/cli | jq -r '.tenantId') \
+        --username $(cat /run/secrets/cli | jq -r '.appId') \
+        --password $(cat /run/secrets/cli | jq -r '.appKey') \
     && azs_log_field T status auth_login \
     || azs_log_field T status auth_login fail
 
   ## If auth endpoint is management, then set tenantSubscriptionId for SPN
   if [ "$FQDNHOST" = "management" ]
   then
-    az account set --subscription $(cat /run/secrets/tenantSubscriptionId) \
+    az account set \
+          --subscription $(cat /run/secrets/cli | jq -r '.tenantSubscriptionId') \
       && azs_log_field T status set_tenantsubscriptionid \
       || azs_log_field T status set_tenantsubscriptionid fail
   fi
@@ -129,7 +146,6 @@ function azs_login
 }
 
 # Update entry in the influxdb
-azs_log_field T azure_subscriptionid $(cat /run/secrets/azureSubscriptionId)
-azs_log_field T tenant_subscriptionid $(cat /run/secrets/tenantSubscriptionId)
-azs_log_field N script_version $SCRIPT_VERSION
-azs_log_field N functions_version $FUNCTIONS_SCRIPT_VERSION
+azs_log_field T azure_subscriptionid $(cat /run/secrets/cli | jq -r '.azureSubscriptionId')
+azs_log_field T tenant_subscriptionid $(cat /run/secrets/cli | jq -r '.tenantSubscriptionId')
+azs_log_field N script_version $(cat /run/secrets/cli | jq -r '.scriptVersion')

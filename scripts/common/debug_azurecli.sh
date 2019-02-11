@@ -1,7 +1,6 @@
 #!/bin/bash
 #SCRIPT_VERSION=0.5
 
-### On the host ###
 JOB_NAME=debug_azurecli
 JOB_TIMESTAMP=$(date --utc +%s)
 
@@ -12,14 +11,27 @@ SERVICEID=$(sudo docker service ls --filter name=$JOB_NAME --format "{{.ID}}")
 if ! [ -z "$SERVICEID" ]
 then
   sudo docker service rm $SERVICEID \
-    && echo "## Pass: removed existing docker services" \
+    && echo "## Pass: remove existing docker service" \
     || echo "## Pass: no exisiting docker service found"
 fi
+
+# Wait for container to cleaned up
+Y=20
+while [ $Y -ge 1 ]
+do
+  CONTAINERID=$(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}")
+  echo $CONTAINERID
+  if [ -z "$CONTAINERID" ]; then break; fi
+  echo "Waiting for container to be cleaned up. $Y seconds"
+  sleep 1s
+  Y=$(( $Y - 1 ))
+  if [ $Y = 0 ]; then { echo "## Fail: debug_azurecli container not cleaned up" ; return 1 ; }; fi
+done
 
 # Get Azure CLI docker image version
 AZURECLI_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.azurecli") \
   && echo "## Pass: retrieve azurecli version from config" \
-  || { echo "## Fail: retrieve azurecli version from config" ; exit 1 ; }
+  || { echo "## Fail: retrieve azurecli version from config" ; return 1 ; }
 
 # Azure CLI
 sudo docker service create \
@@ -41,11 +53,12 @@ Y=15
 while [ $Y -ge 1 ]
 do
   CONTAINERID=$(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}")
+  echo $CONTAINERID
   if ! [ -z "$CONTAINERID" ]; then break; fi
   echo "Waiting for container to start. $Y seconds"
   sleep 1s
   Y=$(( $Y - 1 ))
-  if [ $Y = 0 ]; then { echo "## Fail: srv_bootstrap_tenant container did not start" ; exit 1 ; }; fi
+  if [ $Y = 0 ]; then { echo "## Fail: debug_azurecli container did not start" ; return 1 ; }; fi
 done
 
 # Exec to the VM
