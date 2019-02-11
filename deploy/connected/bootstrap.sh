@@ -165,6 +165,18 @@ function azs_login
     && echo "## Pass: set REQUESTS_CA_BUNDLE with AzureStack root CA" \
     || { echo "## Fail: set REQUESTS_CA_BUNDLE with AzureStack root CA" ; exit 1 ; }
 
+  # Set to Azure Cloud first to cleanup a profile from failed deployments
+  az cloud set \
+    --name AzureCloud \
+  && echo "## Pass: select AzureCloud" \
+  || { echo "## Fail: select cloud" ; exit 1 ; }
+
+  # Cleanup existing profile from failed deployment
+  az cloud unregister \
+      --name AzureStackCloud \
+  && echo "## Pass: unregister AzureStackCloud" \
+  || echo "## Pass: AzureStackCloud does not exist yet" 
+
   az cloud register \
       --name AzureStackCloud \
       --endpoint-resource-manager "https://$FQDNHOST.$FQDN" \
@@ -210,7 +222,6 @@ function azs_logout
       --name AzureCloud \
     && echo "## Pass: select cloud" \
     || { echo "## Fail: select cloud" ; exit 1 ; }
-
 
   az cloud unregister \
         --name AzureStackCloud \
