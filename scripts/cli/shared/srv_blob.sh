@@ -46,7 +46,7 @@ az storage blob upload-batch \
         --destination log \
         --account-name $(cat /run/secrets/cli | jq -r '.storageAccount') \
         --account-key $STORAGE_ACCOUNT_KEY \
-        --source /azs/log \
+        --source /azs/cli/log \
   && azs_log_field T status upload_log_to_blob \
   || azs_log_field T status upload_log_to_blob fail
 
@@ -55,7 +55,7 @@ az storage blob upload-batch \
         --destination csv \
         --account-name $(cat /run/secrets/cli | jq -r '.storageAccount') \
         --account-key $STORAGE_ACCOUNT_KEY \
-        --source /azs/export \
+        --source /azs/cli/export \
   && azs_log_field T status upload_csv_to_blob \
   || azs_log_field T status upload_csv_to_blob fail
 
