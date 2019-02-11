@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ########################### Install Prereqs ###################################
 echo "##################### Install Prereqs"
 
@@ -43,15 +45,13 @@ sudo apt-get install -y docker-ce \
 
 # Files
 
-sudo mkdir -p /azs/{influxdb,grafana/{database,datasources,dashboards},cli/{jobs,common,export,log}} \
+sudo mkdir -p /azs/{influxdb,grafana/{database,datasources,dashboards},common,cli/{jobs,shared,export,log}} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
-BASE_URL=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl") \
-  && echo "## Pass: set variable BASE_URL" \
-  || { echo "## Fail: set variable BASE_URL" ; exit 1 ; }
+BASE_URL=https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master
 
-FILE=$(sudo curl -s "$BASE_URL"/scripts/cli/common/files.json | jq -r ".[] | .[]") \
+FILE=$(sudo curl -s "$BASE_URL"/scripts/common/config.json | jq -r ".files[] | .[]") \
   && echo "## Pass: retrieve file json" \
   || { echo "## Fail: retrieve file json" ; exit 1 ; }
 
@@ -64,6 +64,18 @@ done
 
 # Docker images
 
+INFLUXDB_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.influxdb") \
+  && echo "## Pass: retrieve influxdb version from config" \
+  || { echo "## Fail: retrieve influxdb version from config" ; exit 1 ; }
+
+GRAFANA_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.grafana") \
+  && echo "## Pass: retrieve grafana version from config" \
+  || { echo "## Fail: retrieve grafana version from config" ; exit 1 ; }
+
+AZURECLI_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.azurecli") \
+  && echo "## Pass: retrieve azurecli version from config" \
+  || { echo "## Fail: retrieve azurecli version from config" ; exit 1 ; }
+
 sudo docker pull influxdb:$INFLUXDB_VERSION \
   && echo "## Pass: pulled influxdb image from docker hub" \
   || { echo "## Fail: failed to pull influxdb image from docker hub" ; exit 1 ; }
@@ -75,3 +87,15 @@ sudo docker pull grafana/grafana:$GRAFANA_VERSION \
 sudo docker pull microsoft/azure-cli:$AZURECLI_VERSION  \
   && echo "## Pass: pulled microsoft/azure-cli image from docker hub" \
   || { echo "## Fail: failed to pull microsoft/azure-cli image from docker hub" ; exit 1 ; }
+
+# Bootstrap
+
+sudo mkdir -p /azs/disconnected \
+  && echo "## Pass: create directory disconnected" \
+  || { echo "## Fail: create directory disconnected" ; exit 1 ; }
+
+sudo curl -s \
+      "$BASE_URL"/deploy/disconnected/bootstrap.sh \
+      --output /azs/disconnected/bootstrap.sh \
+  && echo "## Pass: download bootstrap" \
+  || { echo "## Fail: download bootstrap" ; exit 1 ; }
