@@ -234,7 +234,7 @@ az group create \
 az group deployment create \
   --resource-group $UNIQUE_STRING \
   --name bootstrap \
-  --template-file /azs/deploy/linked/mainTemplate.json \
+  --template-file /azs/cli/shared/mainTemplate.json \
   --parameters uniqueString=$UNIQUE_STRING \
   && echo "## Pass: deploy template" \
   || { echo "## Fail: deploy template" ; exit 1 ; }
