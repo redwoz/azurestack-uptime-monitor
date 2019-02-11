@@ -3,58 +3,6 @@
 ARGUMENTS_JSON=$1
 ARGUMENTS_BLOB_ENDPOINT=$2
 
-########################### Set Variables #####################################
-echo "##################### Set Variables"
-
-FQDN=${ARGUMENTS_BLOB_ENDPOINT#*.} \
-  && echo "## Pass: remove storageaccountname. from blob endpoint" \
-  || { echo "## Fail: remove storageaccountname. from blob endpoint" ; exit 1 ; }
-
-FQDN=${FQDN#*.} \
-  && echo "## Pass: remove blob. from blob endpoint" \
-  || { echo "## Fail: remove blob. from blob endpoint" ; exit 1 ; }
-
-FQDN=${FQDN%/*} \
-  && echo "## Pass: remove trailing backslash from blob endpoint" \
-  || { echo "## Fail: remove trailing backslash from blob endpoint" ; exit 1 ; }
-
-API_PROFILE=$(echo $ARGUMENTS_JSON | jq -r ".apiProfile") \
-  && echo "## Pass: set variable API_PROFILE" \
-  || { echo "## Fail: set variable API_PROFILE" ; exit 1 ; }
-
-TENANT_ID=$(echo $ARGUMENTS_JSON | jq -r ".tenantId") \
-  && echo "## Pass: set variable TENANT_ID" \
-  || { echo "## Fail: set variable TENANT_ID" ; exit 1 ; }
-
-APP_ID=$(echo $ARGUMENTS_JSON | jq -r ".appId") \
-  && echo "## Pass: set variable APP_ID" \
-  || { echo "## Fail: set variable APP_ID" ; exit 1 ; }
-
-APP_KEY=$(echo $ARGUMENTS_JSON | jq -r ".appKey") \
-  && echo "## Pass: set variable APP_KEY" \
-  || { echo "## Fail: set variable APP_KEY" ; exit 1 ; }
-
-SUBSCRIPTION_ID=$(echo $ARGUMENTS_JSON | jq -r ".tenantSubscriptionId") \
-  && echo "## Pass: set variable SUBSCRIPTION_ID" \
-  || { echo "## Fail: set variable SUBSCRIPTION_ID" ; exit 1 ; }
-
-LOCATION=$(echo $ARGUMENTS_JSON | jq -r ".location") \
-  && echo "## Pass: set variable LOCATION" \
-  || { echo "## Fail: set variable LOCATION" ; exit 1 ; }
-
-UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
-  && echo "## Pass: set variable UNIQUE_STRING" \
-  || { echo "## Fail: set variable UNIQUE_STRING" ; exit 1 ; }
-
-BASE_URL=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl") \
-  && echo "## Pass: set variable BASE_URL" \
-  || { echo "## Fail: set variable BASE_URL" ; exit 1 ; }
-
-LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
-  && echo "## Pass: set variable LINUX_USERNAME" \
-  || { echo "## Fail: set variable LINUX_USERNAME" ; exit 1 ; }
-
-
 ########################### Install Prereqs ###################################
 echo "##################### Install Prereqs"
 
@@ -104,6 +52,8 @@ sudo mkdir -p /azs/{influxdb,grafana/{database,datasources,dashboards},common,cl
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
+BASE_URL=https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master
+
 FILE=$(sudo curl -s "$BASE_URL"/scripts/common/config.json | jq -r ".files[] | .[]") \
   && echo "## Pass: retrieve file json" \
   || { echo "## Fail: retrieve file json" ; exit 1 ; }
@@ -143,6 +93,54 @@ sudo docker pull microsoft/azure-cli:$AZURECLI_VERSION  \
 
 ########################### Configure #########################################
 echo "##################### Configure"
+
+# Variables
+
+FQDN=${ARGUMENTS_BLOB_ENDPOINT#*.} \
+  && echo "## Pass: remove storageaccountname. from blob endpoint" \
+  || { echo "## Fail: remove storageaccountname. from blob endpoint" ; exit 1 ; }
+
+FQDN=${FQDN#*.} \
+  && echo "## Pass: remove blob. from blob endpoint" \
+  || { echo "## Fail: remove blob. from blob endpoint" ; exit 1 ; }
+
+FQDN=${FQDN%/*} \
+  && echo "## Pass: remove trailing backslash from blob endpoint" \
+  || { echo "## Fail: remove trailing backslash from blob endpoint" ; exit 1 ; }
+
+API_PROFILE=$(echo $ARGUMENTS_JSON | jq -r ".apiProfile") \
+  && echo "## Pass: set variable API_PROFILE" \
+  || { echo "## Fail: set variable API_PROFILE" ; exit 1 ; }
+
+TENANT_ID=$(echo $ARGUMENTS_JSON | jq -r ".tenantId") \
+  && echo "## Pass: set variable TENANT_ID" \
+  || { echo "## Fail: set variable TENANT_ID" ; exit 1 ; }
+
+APP_ID=$(echo $ARGUMENTS_JSON | jq -r ".appId") \
+  && echo "## Pass: set variable APP_ID" \
+  || { echo "## Fail: set variable APP_ID" ; exit 1 ; }
+
+APP_KEY=$(echo $ARGUMENTS_JSON | jq -r ".appKey") \
+  && echo "## Pass: set variable APP_KEY" \
+  || { echo "## Fail: set variable APP_KEY" ; exit 1 ; }
+
+SUBSCRIPTION_ID=$(echo $ARGUMENTS_JSON | jq -r ".tenantSubscriptionId") \
+  && echo "## Pass: set variable SUBSCRIPTION_ID" \
+  || { echo "## Fail: set variable SUBSCRIPTION_ID" ; exit 1 ; }
+
+LOCATION=$(echo $ARGUMENTS_JSON | jq -r ".location") \
+  && echo "## Pass: set variable LOCATION" \
+  || { echo "## Fail: set variable LOCATION" ; exit 1 ; }
+
+UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
+  && echo "## Pass: set variable UNIQUE_STRING" \
+  || { echo "## Fail: set variable UNIQUE_STRING" ; exit 1 ; }
+
+LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
+  && echo "## Pass: set variable LINUX_USERNAME" \
+  || { echo "## Fail: set variable LINUX_USERNAME" ; exit 1 ; }
+
+# Permissions
 
 sudo cp /var/lib/waagent/Certificates.pem /azs/cli/shared/Certificates.pem \
   && echo "## Pass: copy the waagent cert to the common directory" \
