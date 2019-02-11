@@ -16,7 +16,7 @@ function azs_existing_service_remove
     # Export log from the existing service task
     sudo docker container logs \
           $(sudo docker container ls -a --filter name=$JOB_NAME --format "{{.ID}}") \
-          > /azs/log/${JOB_NAME}.log \
+          > /azs/cli/log/${JOB_NAME}.log \
       && echo "Exported log from docker service" \
       || echo "Unable to export log from docker service"
 
