@@ -107,7 +107,7 @@ BASE_URL=$(echo $ARGUMENTS_JSON | jq -r ".baseUrl") \
   && echo "## Pass: set variable BASE_URL" \
   || { echo "## Fail: set variable BASE_URL" ; exit 1 ; }
 
-FILE=$(sudo curl -s "$BASE_URL"/scripts/cli/common/files.json | jq -r ".[] | .[]") \
+FILE=$(sudo curl -s "$BASE_URL"/scripts/cli/common/config.json | jq -r ".files[] | .[]") \
   && echo "## Pass: retrieve file json" \
   || { echo "## Fail: retrieve file json" ; exit 1 ; }
 
