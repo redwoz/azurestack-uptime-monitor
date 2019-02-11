@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source functions.sh
-source /azs/cli/shared/functions.shh \
+source /azs/cli/shared/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
