@@ -43,7 +43,7 @@
     "variables": {
         "prefix": "azs",
         "baseUrl":"https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master",
-        "vmSize": "Standard_F1s",
+        "vmSize": "Standard_F2s_V2",
         "names": {
             "pubIp": "[concat(variables('prefix'),'pubIp')]",
             "pubIpDns": "[toLower(concat(variables('prefix'),'-',uniqueString(resourceGroup().id)))]",
@@ -53,18 +53,22 @@
             "subnet": "[concat(variables('prefix'),'subnet')]",
             "vNic": "[concat(variables('prefix'),'vNic')]",
             "vm": "[concat(variables('prefix'),'vm')]",
-            "storage": "[concat('export',uniqueString(resourceGroup().id))]"
+            "storage": "[concat('export',uniqueString(resourceGroup().id))]",
+            "apiProfile": "[deployment().properties.template.apiProfile]"
         },
         "scriptArguments": {
             "activationKey":"[parameters('activationKey')]",
             "baseUrl": "[variables('baseUrl')]",
-            "subscriptionId": "[subscription().subscriptionId]",
+            "tenantSubscriptionId": "[subscription().subscriptionId]",
             "appId": "[parameters('appId')]",
             "appKey": "[parameters('appKey')]",
             "tenantId": "[subscription().tenantId]",
             "grafanaPassword": "[parameters('grafanaPassword')]",
             "linuxUsername":"[parameters('adminUsername')]",
-            "uniqueString":"[uniqueString(concat(variables('prefix'),resourceGroup().id))]"
+            "uniqueString":"[uniqueString(concat(variables('prefix'),resourceGroup().id))]",
+            "storageAccount":"[concat('export',uniqueString(resourceGroup().id))]",
+            "location":"[resourceGroup().location]",
+            "apiProfile":"[deployment().properties.template.apiProfile]"
         },
         "singleQuote": "'"
 
