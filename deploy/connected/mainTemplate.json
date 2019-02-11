@@ -42,7 +42,6 @@
     },
     "variables": {
         "prefix": "azs",
-        "baseUrl":"https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master",
         "vmSize": "Standard_F2s_v2",
         "names": {
             "pubIp": "[concat(variables('prefix'),'pubIp')]",
@@ -58,7 +57,6 @@
         },
         "scriptArguments": {
             "activationKey":"[parameters('activationKey')]",
-            "baseUrl": "[variables('baseUrl')]",
             "tenantSubscriptionId": "[subscription().subscriptionId]",
             "appId": "[parameters('appId')]",
             "appKey": "[parameters('appKey')]",
@@ -326,7 +324,7 @@
                 "protectedSettings": {
                     "commandToExecute": "[concat('/bin/bash bootstrap.sh ', variables('singleQuote'), string(variables('scriptArguments')), variables('singleQuote'),' ',reference(variables('names').storage).primaryEndpoints.blob)]",
                     "fileUris": [
-                        "[concat(variables('baseUrl'),'/deploy/connected/bootstrap.sh')]"
+                        "https://raw.githubusercontent.com/Azure/azurestack-uptime-monitor/master/deploy/connected/bootstrap.sh"
                     ]
                 }
             }
