@@ -1,8 +1,7 @@
 #!/bin/bash
-SCRIPT_VERSION=0.5
 
 # Source functions.sh
-source /azs/common/functions.sh \
+source /azs/cli/shared/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
@@ -45,7 +44,7 @@ EPOCH_END_IN_SEC=$(( \
 # Set filename
 WEEK_FMT=0$WEEK
 WEEK_FMT="${WEEK_FMT: -2}"
-CSV_FILE_NAME=$(cat /run/secrets/tenantSubscriptionId)-y${YEAR}w${WEEK_FMT}
+CSV_FILE_NAME=$(cat /run/secrets/cli | jq -r '.tenantSubscriptionId')-y${YEAR}w${WEEK_FMT}
 
 # Export data to file
 curl -G 'http://influxdb:8086/query?db=azs' \
@@ -56,21 +55,5 @@ curl -G 'http://influxdb:8086/query?db=azs' \
   || azs_log_field T status srv_export_csv_to_file fail
 
 azs_task_end export
-################################# Task: Upload ################################
-azs_task_start upload
-
-TOKEN=$(echo $(cat /run/secrets/activationKey) | base64 -d | head -n 1 | tail -1 | base64 -d)
-ACCOUNT_NAME=$(echo $(cat /run/secrets/activationKey) | base64 -d | head -n 2 | tail -1)
-DEST=$(echo $(cat /run/secrets/activationKey) | base64 -d | head -n 3 | tail -1)
-
-az storage blob upload-batch \
-        --destination $DEST \
-        --account-name $ACCOUNT_NAME \
-        --sas-token $TOKEN \
-        --source /azs/export \
-  && azs_log_field T status upload_log_to_blob \
-  || azs_log_field T status upload_log_to_blob fail
-
-azs_task_end upload
 ############################### Job: Complete #################################
 azs_job_end

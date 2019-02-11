@@ -1,8 +1,7 @@
 #!/bin/bash
-SCRIPT_VERSION=0.5
 
 # Source functions.sh
-source /azs/common/functions.sh \
+source /azs/cli/shared/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
@@ -20,6 +19,9 @@ azs_login adminmanagement
 azs_task_end auth
 ################################## Task: Read #################################
 azs_task_start read
+
+$TENANT_SUBSCRIPTIONID=$(cat /run/secrets/cli | jq -r '.tenantSubscriptionId')
+$AZURE_SUBSCRIPTIONID=$(cat /run/secrets/cli | jq -r '.azureSubscriptionId')
 
 # Get update location
 UPDATE_LOCATION_ID=$(az resource list \
@@ -53,7 +55,7 @@ TOKEN=$(az account get-access-token | jq -r ".accessToken") \
 ALL_UPDATES=$(curl -sX GET \
         -H "Authorization: Bearer $TOKEN" \
         -H "Content-Type: application/json" \
-        https://adminmanagement.$(cat /run/secrets/fqdn)"$UPDATE_LOCATION_ID"/updates?api-version="$API_VERSION_UPDATE_ADMIN") \
+        https://adminmanagement.$(cat /run/secrets/cli | jq -r '.fqdn')"$UPDATE_LOCATION_ID"/updates?api-version="$API_VERSION_UPDATE_ADMIN") \
   && azs_log_field T status admin_pnu_get_updates \
   || azs_log_field T status admin_pnu_get_updates fail
 
@@ -117,14 +119,14 @@ if [[ $(echo "$RANGE_LAST" | jq -r ".results[].series") == null ]]; then
   RANGE_NEW_ID=$(curl -sX POST \
         -H "Accept: application/json" \
         -H "Content-Type: application/json" \
-        -u admin:$(cat /run/secrets/grafanaAdmin) \
+        -u admin:$(cat /run/secrets/cli | jq -r '.grafanaPassword') \
         -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
     && azs_log_field T status admin_pnu_new_range_grafana \
     || azs_log_field T status admin_pnu_new_range_grafana fail
 
   # Write new annotation to the Influx (no need to update existing one, since it doesn't exist yet)
   curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" \
-        --data-binary "range_pnu tenant_subscriptionid=\"$(cat /run/secrets/tenantSubscriptionId)\",azure_subscriptionid=\"$(cat /run/secrets/azureSubscriptionId)\",range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
+        --data-binary "range_pnu tenant_subscriptionid=\"$TENANT_SUBSCRIPTIONID\",azure_subscriptionid=\"$AZURE_SUBSCRIPTIONID\",range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
     && azs_log_field T status admin_pnu_new_range_influx \
     || azs_log_field T status admin_pnu_new_range_influx fail
 
@@ -158,7 +160,7 @@ END
   # Update the existing annotation endTime in the Grafana db
   curl -sX PUT -H 'Content-Type: application/json' \
         -H 'Accept: application/json' \
-        -u admin:$(cat /run/secrets/grafanaAdmin) \
+        -u admin:$(cat /run/secrets/cli | jq -r '.grafanaPassword') \
         -d "$RANGE_UPDATE_BODY" http://grafana:3000/api/annotations/$RANGE_LAST_ID \
     && azs_log_field T status admin_pnu_update_range_grafana \
     || azs_log_field T status admin_pnu_update_range_grafana fail
@@ -175,14 +177,14 @@ END
     # Create new annotation
     RANGE_NEW_ID=$(curl -sX POST -H "Accept: application/json" \
           -H "Content-Type: application/json" \
-          -u admin:$(cat /run/secrets/grafanaAdmin) \
+          -u admin:$(cat /run/secrets/cli | jq -r '.grafanaPassword') \
           -d "$RANGE_NEW_BODY" http://grafana:3000/api/annotations | jq -r ".id") \
       && azs_log_field T status admin_pnu_new_state_grafana \
       || azs_log_field T status admin_pnu_new_state_grafana fail
 
     # Write new annotation to the Influx
     curl -s -i -XPOST "http:/influxdb:8086/write?db=azs&precision=s" \
-          --data-binary "range_pnu tenant_subscriptionid=\"$(cat /run/secrets/tenantSubscriptionId)\",azure_subscriptionid=\"$(cat /run/secrets/azureSubscriptionId)\",range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
+          --data-binary "range_pnu tenant_subscriptionid=\"$TENANT_SUBSCRIPTIONID\",azure_subscriptionid=\"$AZURE_SUBSCRIPTIONID\",range_id=\"$RANGE_NEW_ID\",time_start=$(($(date --utc +%s)*1000)),state=\"$CURRENT_UPDATE_STATE\",current_version=\"$CURRENT_UPDATE_VERSION\",new_version=\"$NEW_UPDATE_VERSION\",new_description=\"$NEW_UPDATE_DESCRIPTION\"" | grep HTTP \
       && azs_log_field T status admin_pnu_new_state_influx \
       || azs_log_field T status admin_pnu_new_state_influx fail
 

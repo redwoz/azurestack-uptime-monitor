@@ -100,7 +100,7 @@ sudo apt-get install -y docker-ce \
 
 # Files
 
-sudo mkdir -p /azs/{influxdb,grafana/{database,datasources,dashboards},common,cli/{jobs,export,log}} \
+sudo mkdir -p /azs/{influxdb,grafana/{database,datasources,dashboards},common,cli/{jobs,shared,export,log}} \
   && echo "## Pass: created directory structure" \
   || { echo "## Fail: failed to create directory structure" ; exit 1 ; }
 
@@ -117,15 +117,15 @@ done
 
 # Docker images
 
-INFLUXDB_VERSION=$(sudo cat /azs/scripts/common/config.json | jq -r ".version.influxdb") \
+INFLUXDB_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.influxdb") \
   && echo "## Pass: retrieve influxdb version from config" \
   || { echo "## Fail: retrieve influxdb version from config" ; exit 1 ; }
 
-GRAFANA_VERSION=$(sudo cat /azs/scripts/common/config.json | jq -r ".version.grafana") \
+GRAFANA_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.grafana") \
   && echo "## Pass: retrieve grafana version from config" \
   || { echo "## Fail: retrieve grafana version from config" ; exit 1 ; }
 
-AZURECLI_VERSION=$(sudo cat /azs/scripts/common/config.json | jq -r ".version.azurecli") \
+AZURECLI_VERSION=$(sudo cat /azs/common/config.json | jq -r ".version.azurecli") \
   && echo "## Pass: retrieve azurecli version from config" \
   || { echo "## Fail: retrieve azurecli version from config" ; exit 1 ; }
 
@@ -144,11 +144,11 @@ sudo docker pull microsoft/azure-cli:$AZURECLI_VERSION  \
 ########################### Configure #########################################
 echo "##################### Configure"
 
-sudo cp /var/lib/waagent/Certificates.pem /azs/cli/common/Certificates.pem \
+sudo cp /var/lib/waagent/Certificates.pem /azs/cli/shared/Certificates.pem \
   && echo "## Pass: copy the waagent cert to the common directory" \
   || { echo "## Fail: copy the waagent cert to the common directory" ; exit 1 ; }
 
-sudo chmod -R 755 /azs/{common,cli/{jobs,export}} \
+sudo chmod -R 755 /azs/{common,cli/{jobs,shared,export}} \
   && echo "## Pass: set execute permissions for directories" \
   || { echo "## Fail: set execute permissions for directories" ; exit 1 ; }
 
@@ -156,14 +156,14 @@ sudo chmod -R 777 /azs/cli/log \
   && echo "## Pass: set write permissions for directory" \
   || { echo "## Fail: set write permissions for directory" ; exit 1 ; }
 
-########################### Function Login ####################################
-echo "##################### Function Login"
+########################### Function az login and logout ######################
+echo "##################### Function az login and logout"
 
 function azs_login
 {
   local FQDNHOST=$1
 
-  export REQUESTS_CA_BUNDLE=/azs/cli/common/Certificates.pem \
+  export REQUESTS_CA_BUNDLE=/azs/cli/shared/Certificates.pem \
     && echo "## Pass: set REQUESTS_CA_BUNDLE with AzureStack root CA" \
     || { echo "## Fail: set REQUESTS_CA_BUNDLE with AzureStack root CA" ; exit 1 ; }
 
@@ -361,7 +361,12 @@ ARGUMENTS_JSON=$(echo $ARGUMENTS_JSON \
   && echo "## Pass: add azureSubscriptionId" \
   || { echo "## Fail: add azureSubscriptionId" ; exit 1 ; }
 
-echo $JSON_ARGUMENTS | sudo docker secret create cli - \
+ARGUMENTS_JSON=$(echo $ARGUMENTS_JSON \
+      | jq --arg X $(sudo cat /azs/common/config.json | jq -r ".version.script") '. + {scriptVersion: $X}') \
+  && echo "## Pass: add fqdn" \
+  || { echo "## Fail: add fqdn" ; exit 1 ; }
+
+echo $ARGUMENTS_JSON | sudo docker secret create cli - \
   && echo "## Pass: created docker secret cli" \
   || { echo "## Fail: created docker secret cli" ; exit 1 ; }
 

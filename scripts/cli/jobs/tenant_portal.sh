@@ -1,8 +1,7 @@
 #!/bin/bash
-SCRIPT_VERSION=0.5
 
 # Source functions.sh
-source /azs/common/functions.sh \
+source /azs/cli/shared/functions.sh \
   && echo "Sourced functions.sh" \
   || { echo "Failed to source functions.sh" ; exit ; }
 
@@ -10,8 +9,8 @@ source /azs/common/functions.sh \
 azs_task_start probe
 
 openssl s_client \
-      -connect portal.$(cat /run/secrets/fqdn):443 \
-      -servername portal.$(cat /run/secrets/fqdn) \
+      -connect portal.$(cat /run/secrets/cli | jq -r '.fqdn'):443 \
+      -servername portal.$(cat /run/secrets/cli | jq -r '.fqdn') \
   && azs_log_field T status admin_portal_openssl_connect \
   || azs_log_field T status admin_portal_openssl_connect fail
 
