@@ -32,7 +32,7 @@ Once the deployment is complete the solution provides the following endpoints
 - **Grafana portal** on **https://[loadbalancer-public-ip-address]:3000**
 - **SSH to the VM** with **ssh [adminUserName]@[loadbalancer-public-ip-address]**
 
-Each endpoint requires authentication. The Grafana portal can be accessed with username **admin** and the password specified for the **grafanaPassword** parameter. Connecting with SSH to the VM requires the the client to have the private key of the SSH key pair (matching the public key specified for the sshPublicKey parameter during deployment) imported into the terminal client.
+Each endpoint requires authentication. The Grafana portal can be accessed with username **azureadmin** (or whatever other value was submitted for the **adminUsername** parameter during deployment) and the password specified for the **grafanaPassword** parameter. Connecting with SSH to the VM requires the the client to have the private key of the SSH key pair (matching the public key specified for the **sshPublicKey** parameter during deployment) imported into the terminal client.
 
 ## Dashboard
 When you have signed in to the Grafana portal, select 

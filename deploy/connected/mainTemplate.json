@@ -62,7 +62,7 @@
             "appKey": "[parameters('appKey')]",
             "tenantId": "[subscription().tenantId]",
             "grafanaPassword": "[parameters('grafanaPassword')]",
-            "linuxUsername":"[parameters('adminUsername')]",
+            "adminUsername":"[parameters('adminUsername')]",
             "uniqueString":"[uniqueString(concat(variables('prefix'),resourceGroup().id))]",
             "storageAccount":"[concat('export',uniqueString(resourceGroup().id))]",
             "resourceGroup":"[resourceGroup().name]",
