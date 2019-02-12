@@ -6,8 +6,8 @@ The connected version can be updated with new features at any given time.
 The connected version has the following prerequisites.
 
 - Ubuntu image (18.04-LTS or 16.04-LTS). You can use the images available in the Azure marketplace feed in Azure Stack marketplace management.
-- The linux vm extension v2.0 needs to be available in the Azure Stack enviroment, also available through Marketplace Management.
-- An SPN created in the Identity Provider ([AAD](https://docs.microsoft.com/en-us/azure/azure-stack/user/azure-stack-create-service-principals#create-service-principal-for-azure-ad) or [ADFS](https://docs.microsoft.com/en-us/azure/azure-stack/azure-stack-create-service-principals#create-a-service-principal-using-a-client-secret)). The authentication method for the SPN account must be with a key (certificate based authentication is not supported). The SPN must have **reader** permissions on the default provider subscription and **contributor** permissions on a tenant subscription.
+- The *Custom Script for Linux v2.0* needs to be available in the Azure Stack enviroment, also available through Marketplace Management.
+- An SPN created in the Identity Provider ([AAD](https://docs.microsoft.com/en-us/azure/azure-stack/user/azure-stack-create-service-principals#create-service-principal-for-azure-ad) or [ADFS](https://docs.microsoft.com/en-us/azure/azure-stack/azure-stack-create-service-principals#create-a-service-principal-using-a-client-secret)). The authentication method for the SPN account must be with a key (certificate based authentication is not supported). The SPN must have **reader** permissions on the default provider subscription (set in the Azure Stack admin portal) and **contributor** permissions on a tenant subscription (set in the Azure Stack tenant portal).
 - A tenant user in the same tenant as the SPN account that has at least **contributor** permissions to a resource group that the solution will be deployed to.
 - An SSH key pair for authenticating to the solution VM. [Guide for creating and using the ssh key pair](/docs/SSH.md).
 
