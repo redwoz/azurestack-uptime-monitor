@@ -136,9 +136,9 @@ UNIQUE_STRING=$(echo $ARGUMENTS_JSON | jq -r ".uniqueString") \
   && echo "## Pass: set variable UNIQUE_STRING" \
   || { echo "## Fail: set variable UNIQUE_STRING" ; exit 1 ; }
 
-LINUX_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".linuxUsername") \
-  && echo "## Pass: set variable LINUX_USERNAME" \
-  || { echo "## Fail: set variable LINUX_USERNAME" ; exit 1 ; }
+ADMIN_USERNAME=$(echo $ARGUMENTS_JSON | jq -r ".adminUsername") \
+  && echo "## Pass: set variable ADMIN_USERNAME" \
+  || { echo "## Fail: set variable ADMIN_USERNAME" ; exit 1 ; }
 
 # Permissions
 
@@ -337,9 +337,9 @@ sudo docker swarm init \
   && echo "## Pass: initialize Docker Swarm" \
   || echo "## Pass: Docker Swarm is already initialized"
 
-sudo crontab -u $LINUX_USERNAME -r \
-  && echo "## Pass: remove existing crontab for $LINUX_USERNAME" \
-  || echo "## Pass: crontab is not yet configured for $LINUX_USERNAME"
+sudo crontab -u $ADMIN_USERNAME -r \
+  && echo "## Pass: remove existing crontab for $ADMIN_USERNAME" \
+  || echo "## Pass: crontab is not yet configured for $ADMIN_USERNAME"
 
 sudo docker service rm $(sudo docker service ls --format "{{.ID}}") \
   && echo "## Pass: removed existing docker services" \
@@ -355,10 +355,6 @@ echo "##################### Create Services"
 sudo docker network create --driver overlay azs \
   && echo "## Pass: create network overlay azs" \
   || echo "## Pass: network overlay azs already exists"
-
-echo $ARGUMENTS_JSON | jq -r ".grafanaPassword" | sudo docker secret create grafana - \
-  && echo "## Pass: create docker secret grafana" \
-  || { echo "## Fail: create docker secret grafana" ; exit 1 ; }
 
 ARGUMENTS_JSON=$(echo $ARGUMENTS_JSON \
       | jq --arg X $FQDN '. + {fqdn: $X}') \
@@ -403,8 +399,8 @@ sudo docker service create \
      --mount type=bind,src=/azs/grafana/datasources,dst=/etc/grafana/provisioning/datasources \
      --mount type=bind,src=/azs/grafana/dashboards,dst=/etc/grafana/provisioning/dashboards \
      --publish published=3000,target=3000 \
-     --secret grafana \
-     --env GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana \
+     --env GF_SECURITY_ADMIN_USER=$(echo $ARGUMENTS_JSON | jq -r ".adminUsername") \
+     --env GF_SECURITY_ADMIN_PASSWORD=$(echo $ARGUMENTS_JSON | jq -r ".grafanaPassword") \
      grafana/grafana:$GRAFANA_VERSION \
   && echo "## Pass: create docker service for grafana" \
   || { echo "## Fail: create docker service for grafana" ; exit 1 ; }
@@ -422,9 +418,9 @@ do
 done
 
 # Crontab
-sudo crontab -u $LINUX_USERNAME /azs/common/cron_tab.conf \
-  && echo "## Pass: create crontab for $LINUX_USERNAME" \
-  || { echo "## Fail: create crontab for $LINUX_USERNAME" ; exit 1 ; }
+sudo crontab -u $ADMIN_USERNAME /azs/common/cron_tab.conf \
+  && echo "## Pass: create crontab for $ADMIN_USERNAME" \
+  || { echo "## Fail: create crontab for $ADMIN_USERNAME" ; exit 1 ; }
 
 # InfluxDB retention policy
 curl -sX POST "http://localhost:8086/query?db=azs" \
